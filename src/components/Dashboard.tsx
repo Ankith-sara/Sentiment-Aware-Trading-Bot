@@ -4,6 +4,8 @@ import PriceChart from './PriceChart';
 import SentimentGauge from './SentimentGauge';
 import AssetCard from './AssetCard';
 
+import { useTheme } from '../contexts/ThemeContext';
+
 interface MarketData {
   symbol: string;
   price: number;
@@ -24,6 +26,8 @@ interface Trade {
 }
 
 const Dashboard: React.FC = () => {
+  const { isDark } = useTheme();
+  
   const [marketData, setMarketData] = useState<MarketData[]>([
     { symbol: 'AAPL', price: 178.32, change: 2.45, changePercent: 1.39, sentiment: 0.76, volume: 45623000 },
     { symbol: 'TSLA', price: 251.44, change: -5.21, changePercent: -2.03, sentiment: 0.42, volume: 67432000 },
@@ -67,11 +71,13 @@ const Dashboard: React.FC = () => {
     <div className="space-y-6">
       {/* Status Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
+        <div className={`rounded-lg p-6 border transition-colors duration-300 ${
+          isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'
+        }`}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-slate-400 text-sm font-medium">Portfolio Value</p>
-              <p className="text-2xl font-bold text-white">${totalValue.toLocaleString()}</p>
+              <p className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Portfolio Value</p>
+              <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>${totalValue.toLocaleString()}</p>
             </div>
             <DollarSign className="h-8 w-8 text-green-500" />
           </div>
@@ -83,37 +89,43 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
+        <div className={`rounded-lg p-6 border transition-colors duration-300 ${
+          isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'
+        }`}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-slate-400 text-sm font-medium">Bot Status</p>
+              <p className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Bot Status</p>
               <p className="text-2xl font-bold text-green-400">Active</p>
             </div>
             <Activity className="h-8 w-8 text-blue-500" />
           </div>
           <div className="mt-4">
-            <span className="text-slate-300 text-sm">{botStatus.lastAction}</span>
+            <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{botStatus.lastAction}</span>
           </div>
         </div>
 
-        <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
+        <div className={`rounded-lg p-6 border transition-colors duration-300 ${
+          isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'
+        }`}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-slate-400 text-sm font-medium">Accuracy</p>
-              <p className="text-2xl font-bold text-white">{botStatus.accuracy}%</p>
+              <p className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Accuracy</p>
+              <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{botStatus.accuracy}%</p>
             </div>
             <CheckCircle className="h-8 w-8 text-green-500" />
           </div>
           <div className="mt-4">
-            <span className="text-slate-400 text-sm">{botStatus.signalsProcessed} signals processed</span>
+            <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{botStatus.signalsProcessed} signals processed</span>
           </div>
         </div>
 
-        <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
+        <div className={`rounded-lg p-6 border transition-colors duration-300 ${
+          isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'
+        }`}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-slate-400 text-sm font-medium">Market Sentiment</p>
-              <p className="text-2xl font-bold text-white">{(overallSentiment * 100).toFixed(1)}%</p>
+              <p className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Market Sentiment</p>
+              <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{(overallSentiment * 100).toFixed(1)}%</p>
             </div>
             <AlertTriangle className={`h-8 w-8 ${overallSentiment > 0.6 ? 'text-green-500' : overallSentiment > 0.4 ? 'text-yellow-500' : 'text-red-500'}`} />
           </div>
@@ -138,8 +150,10 @@ const Dashboard: React.FC = () => {
       {/* Assets and Recent Trades */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Watched Assets */}
-        <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
-          <h3 className="text-lg font-semibold text-white mb-4">Watched Assets</h3>
+        <div className={`rounded-lg p-6 border transition-colors duration-300 ${
+          isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'
+        }`}>
+          <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Watched Assets</h3>
           <div className="space-y-3">
             {marketData.map((asset) => (
               <AssetCard key={asset.symbol} asset={asset} />
@@ -148,25 +162,29 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Recent Trades */}
-        <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
-          <h3 className="text-lg font-semibold text-white mb-4">Recent Trades</h3>
+        <div className={`rounded-lg p-6 border transition-colors duration-300 ${
+          isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'
+        }`}>
+          <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Recent Trades</h3>
           <div className="space-y-3">
             {recentTrades.map((trade) => (
-              <div key={trade.id} className="flex items-center justify-between p-3 bg-slate-700 rounded-lg">
+              <div key={trade.id} className={`flex items-center justify-between p-3 rounded-lg transition-colors duration-300 ${
+                isDark ? 'bg-gray-800' : 'bg-gray-50'
+              }`}>
                 <div className="flex items-center space-x-3">
                   <div className={`w-2 h-2 rounded-full ${trade.type === 'buy' ? 'bg-green-500' : 'bg-red-500'}`}></div>
                   <div>
-                    <div className="text-white font-medium">{trade.symbol}</div>
-                    <div className="text-slate-400 text-sm">
+                    <div className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{trade.symbol}</div>
+                    <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                       {trade.type.toUpperCase()} {trade.quantity} @ ${trade.price}
                     </div>
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-white font-medium">
+                  <div className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
                     ${(trade.quantity * trade.price).toLocaleString()}
                   </div>
-                  <div className="text-slate-400 text-sm">
+                  <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                     Sentiment: {(trade.sentiment * 100).toFixed(0)}%
                   </div>
                 </div>

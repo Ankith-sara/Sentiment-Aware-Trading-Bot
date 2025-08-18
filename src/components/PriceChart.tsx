@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface ChartData {
   time: string;
@@ -8,6 +9,7 @@ interface ChartData {
 }
 
 const PriceChart: React.FC = () => {
+  const { isDark } = useTheme();
   const [selectedAsset, setSelectedAsset] = useState('AAPL');
   const [timeframe, setTimeframe] = useState('1D');
   const [chartData, setChartData] = useState<ChartData[]>([]);
@@ -45,15 +47,21 @@ const PriceChart: React.FC = () => {
   const priceRange = maxPrice - minPrice;
 
   return (
-    <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
+    <div className={`rounded-lg p-6 border transition-colors duration-300 ${
+      isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'
+    }`}>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-lg font-semibold text-white">Price Chart</h3>
+          <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Price Chart</h3>
           <div className="flex items-center space-x-4 mt-2">
             <select 
               value={selectedAsset}
               onChange={(e) => setSelectedAsset(e.target.value)}
-              className="bg-slate-700 text-white px-3 py-1 rounded border border-slate-600 focus:border-blue-500 focus:outline-none"
+              className={`px-3 py-1 rounded border focus:border-blue-500 focus:outline-none transition-colors duration-300 ${
+                isDark 
+                  ? 'bg-gray-800 text-white border-gray-700' 
+                  : 'bg-white text-gray-900 border-gray-300'
+              }`}
             >
               <option value="AAPL">AAPL</option>
               <option value="TSLA">TSLA</option>
@@ -62,7 +70,7 @@ const PriceChart: React.FC = () => {
             </select>
             
             <div className="flex items-center space-x-2">
-              <span className="text-2xl font-bold text-white">${currentPrice.toFixed(2)}</span>
+              <span className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>${currentPrice.toFixed(2)}</span>
               <span className={`flex items-center text-sm font-medium ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
                 {isPositive ? <TrendingUp className="w-4 h-4 mr-1" /> : <TrendingDown className="w-4 h-4 mr-1" />}
                 {isPositive ? '+' : ''}{priceChange.toFixed(2)} ({priceChangePercent.toFixed(2)}%)
@@ -76,10 +84,12 @@ const PriceChart: React.FC = () => {
             <button
               key={tf}
               onClick={() => setTimeframe(tf)}
-              className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+              className={`px-3 py-1 rounded text-sm font-medium transition-colors duration-300 ${
                 timeframe === tf
                   ? 'bg-blue-600 text-white'
-                  : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                  : isDark 
+                    ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
+                    : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
               }`}
             >
               {tf}
@@ -89,12 +99,14 @@ const PriceChart: React.FC = () => {
       </div>
 
       {/* Chart Canvas */}
-      <div className="relative h-80 bg-slate-900 rounded-lg p-4">
+      <div className={`relative h-80 rounded-lg p-4 transition-colors duration-300 ${
+        isDark ? 'bg-gray-950' : 'bg-gray-50'
+      }`}>
         <svg className="w-full h-full" viewBox="0 0 800 300">
           {/* Grid lines */}
           <defs>
             <pattern id="grid" width="80" height="30" patternUnits="userSpaceOnUse">
-              <path d="M 80 0 L 0 0 0 30" fill="none" stroke="#374151" strokeWidth="0.5" opacity="0.3"/>
+              <path d="M 80 0 L 0 0 0 30" fill="none" stroke={isDark ? "#374151" : "#d1d5db"} strokeWidth="0.5" opacity="0.3"/>
             </pattern>
           </defs>
           <rect width="800" height="300" fill="url(#grid)" />
@@ -152,7 +164,9 @@ const PriceChart: React.FC = () => {
         </svg>
 
         {/* Legend */}
-        <div className="absolute bottom-2 right-2 flex items-center space-x-4 text-xs text-slate-400">
+        <div className={`absolute bottom-2 right-2 flex items-center space-x-4 text-xs ${
+          isDark ? 'text-gray-400' : 'text-gray-500'
+        }`}>
           <div className="flex items-center space-x-1">
             <div className="w-3 h-0.5 bg-green-500"></div>
             <span>Price</span>

@@ -30,15 +30,15 @@ function AppContent() {
   ];
 
   return (
-    <div className={`min-h-screen transition-colors duration-200 ${
+    <div className={`min-h-screen transition-colors duration-300 ${
       isDark 
-        ? 'bg-slate-900 text-white' 
+        ? 'bg-gray-950 text-white' 
         : 'bg-gray-50 text-gray-900'
     }`}>
       {/* Header */}
-      <header className={`border-b px-6 py-4 transition-colors duration-200 ${
+      <header className={`border-b px-6 py-4 transition-colors duration-300 ${
         isDark 
-          ? 'bg-slate-800 border-slate-700' 
+          ? 'bg-gray-900 border-gray-800' 
           : 'bg-white border-gray-200'
       }`}>
         <div className="flex items-center justify-between">
@@ -51,7 +51,7 @@ function AppContent() {
             </div>
             <div className="flex items-center space-x-2">
               <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
-              <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+              <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                 {isConnected ? 'Connected' : 'Reconnecting...'}
               </span>
             </div>
@@ -60,13 +60,13 @@ function AppContent() {
           <div className="flex items-center space-x-6">
             <div className="flex items-center space-x-4">
               <div className="text-right">
-                <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+                <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                   Portfolio Value
                 </div>
                 <div className="text-lg font-semibold text-green-400">$127,845.32</div>
               </div>
               <div className="text-right">
-                <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+                <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                   Today's P&L
                 </div>
                 <div className="text-lg font-semibold text-green-400 flex items-center">
@@ -79,18 +79,18 @@ function AppContent() {
             {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
-              className={`p-2 rounded-lg transition-colors ${
+              className={`p-2 rounded-lg transition-colors duration-300 ${
                 isDark 
-                  ? 'text-slate-400 hover:text-white hover:bg-slate-700' 
+                  ? 'text-gray-400 hover:text-white hover:bg-gray-800' 
                   : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
               }`}
             >
               {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </button>
             
-            <button className={`relative p-2 transition-colors ${
+            <button className={`relative p-2 transition-colors duration-300 ${
               isDark 
-                ? 'text-slate-400 hover:text-white' 
+                ? 'text-gray-400 hover:text-white' 
                 : 'text-gray-500 hover:text-gray-900'
             }`}>
               <Bell className="h-5 w-5" />
@@ -103,15 +103,15 @@ function AppContent() {
                 <div className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   {currentUser?.displayName || currentUser?.email || 'User'}
                 </div>
-                <div className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+                <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                   Premium Account
                 </div>
               </div>
               <button
                 onClick={logout}
-                className={`p-2 rounded-lg transition-colors ${
+                className={`p-2 rounded-lg transition-colors duration-300 ${
                   isDark 
-                    ? 'text-slate-400 hover:text-white hover:bg-slate-700' 
+                    ? 'text-gray-400 hover:text-white hover:bg-gray-800' 
                     : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
                 }`}
                 title="Logout"
@@ -125,9 +125,9 @@ function AppContent() {
 
       <div className="flex">
         {/* Sidebar */}
-        <aside className={`w-64 border-r min-h-[calc(100vh-80px)] transition-colors duration-200 ${
+        <aside className={`w-64 border-r min-h-[calc(100vh-80px)] transition-colors duration-300 ${
           isDark 
-            ? 'bg-slate-800 border-slate-700' 
+            ? 'bg-gray-900 border-gray-800' 
             : 'bg-white border-gray-200'
         }`}>
           <nav className="p-4">
@@ -136,11 +136,11 @@ function AppContent() {
                 <li key={id}>
                   <button
                     onClick={() => setActiveTab(id)}
-                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 ${
                       activeTab === id
                         ? 'bg-blue-600 text-white'
                         : isDark 
-                          ? 'text-slate-300 hover:bg-slate-700 hover:text-white'
+                          ? 'text-gray-300 hover:bg-gray-800 hover:text-white'
                           : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                     }`}
                   >

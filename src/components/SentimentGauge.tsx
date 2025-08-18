@@ -1,11 +1,13 @@
 import React from 'react';
 import { Brain, TrendingUp, TrendingDown } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface SentimentGaugeProps {
   sentiment: number; // 0 to 1
 }
 
 const SentimentGauge: React.FC<SentimentGaugeProps> = ({ sentiment }) => {
+  const { isDark } = useTheme();
   const percentage = sentiment * 100;
   const rotation = (sentiment - 0.5) * 180; // -90 to +90 degrees
   
@@ -30,9 +32,11 @@ const SentimentGauge: React.FC<SentimentGaugeProps> = ({ sentiment }) => {
   };
 
   return (
-    <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
+    <div className={`rounded-lg p-6 border transition-colors duration-300 ${
+      isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'
+    }`}>
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-white flex items-center">
+        <h3 className={`text-lg font-semibold flex items-center ${isDark ? 'text-white' : 'text-gray-900'}`}>
           <Brain className="w-5 h-5 mr-2 text-blue-500" />
           Market Sentiment
         </h3>
@@ -50,7 +54,7 @@ const SentimentGauge: React.FC<SentimentGaugeProps> = ({ sentiment }) => {
           <path
             d="M 20 80 A 80 80 0 0 1 180 80"
             fill="none"
-            stroke="#374151"
+            stroke={isDark ? "#374151" : "#d1d5db"}
             strokeWidth="8"
             strokeLinecap="round"
           />
@@ -92,15 +96,15 @@ const SentimentGauge: React.FC<SentimentGaugeProps> = ({ sentiment }) => {
               y1="0"
               x2="0"
               y2="-60"
-              stroke="#ffffff"
+              stroke={isDark ? "#ffffff" : "#1f2937"}
               strokeWidth="3"
               strokeLinecap="round"
             />
-            <circle cx="0" cy="0" r="6" fill="#ffffff" />
+            <circle cx="0" cy="0" r="6" fill={isDark ? "#ffffff" : "#1f2937"} />
           </g>
 
           {/* Center dot */}
-          <circle cx="100" cy="80" r="4" fill="#374151" />
+          <circle cx="100" cy="80" r="4" fill={isDark ? "#374151" : "#9ca3af"} />
         </svg>
 
         {/* Labels */}
@@ -115,7 +119,7 @@ const SentimentGauge: React.FC<SentimentGaugeProps> = ({ sentiment }) => {
       {/* Current Value */}
       <div className="text-center space-y-4">
         <div className="space-y-2">
-          <div className="text-3xl font-bold text-white">{percentage.toFixed(1)}%</div>
+          <div className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{percentage.toFixed(1)}%</div>
           <div className={`text-lg font-semibold ${getSentimentColor(sentiment)}`}>
             {getSentimentLabel(sentiment)}
           </div>
@@ -129,7 +133,7 @@ const SentimentGauge: React.FC<SentimentGaugeProps> = ({ sentiment }) => {
                 className={`w-full h-8 ${getSentimentBgColor(value)} rounded-sm opacity-${index === 6 ? '100' : '60'}`}
                 style={{ height: `${value * 32}px` }}
               ></div>
-              <div className="text-xs text-slate-500">
+              <div className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
                 {index === 6 ? 'Now' : `${7-index}d`}
               </div>
             </div>
@@ -139,18 +143,18 @@ const SentimentGauge: React.FC<SentimentGaugeProps> = ({ sentiment }) => {
 
       {/* Sentiment Factors */}
       <div className="mt-6 space-y-2">
-        <h4 className="text-sm font-medium text-slate-300">Key Factors</h4>
+        <h4 className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Key Factors</h4>
         <div className="space-y-2 text-sm">
           <div className="flex justify-between items-center">
-            <span className="text-slate-400">News Sentiment</span>
+            <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>News Sentiment</span>
             <span className="text-green-400">+73%</span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-slate-400">Social Media</span>
+            <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>Social Media</span>
             <span className="text-yellow-400">+45%</span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-slate-400">Technical Analysis</span>
+            <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>Technical Analysis</span>
             <span className="text-green-400">+68%</span>
           </div>
         </div>
