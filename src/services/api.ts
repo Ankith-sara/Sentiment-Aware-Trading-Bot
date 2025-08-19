@@ -208,6 +208,7 @@ class ApiService {
 export const apiService = new ApiService();
 
 // Mock data for development when API is not available
+// Mock data for development when API is not available
 export const mockApiService = {
   async analyzeSentiment(request: SentimentRequest): Promise<SentimentResponse> {
     await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API delay
@@ -250,8 +251,8 @@ export const mockApiService = {
       reasoning: `Based on sentiment analysis and technical indicators for ${symbol}`,
       timestamp: new Date().toISOString()
     }));
-  }
-};
+  },
+
   async getTradingHistory(): Promise<Trade[]> {
     await new Promise(resolve => setTimeout(resolve, 500));
     
@@ -295,3 +296,4 @@ export const mockApiService = {
       timestamp: new Date().toISOString()
     }));
   }
+};
