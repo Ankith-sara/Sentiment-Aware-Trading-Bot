@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { TrendingUp, TrendingDown, Filter, Download, Calendar } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface Trade {
   id: string;
@@ -15,6 +16,7 @@ interface Trade {
 }
 
 const TradingHistory: React.FC = () => {
+  const { isDark } = useTheme();
   const [filter, setFilter] = useState('all');
   const [dateRange, setDateRange] = useState('7d');
 
@@ -98,10 +100,14 @@ const TradingHistory: React.FC = () => {
     <div className="space-y-6">
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
+        <div className={`rounded-2xl shadow-xl border p-6 ${
+          isDark 
+            ? 'bg-gray-800 border-gray-700' 
+            : 'bg-white border-gray-200'
+        }`}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-slate-400 text-sm font-medium">Total P&L</p>
+              <p className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Total P&L</p>
               <p className={`text-2xl font-bold ${totalPnL >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                 {totalPnL >= 0 ? '+' : ''}${totalPnL.toFixed(2)}
               </p>
@@ -114,20 +120,28 @@ const TradingHistory: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
+        <div className={`rounded-2xl shadow-xl border p-6 ${
+          isDark 
+            ? 'bg-gray-800 border-gray-700' 
+            : 'bg-white border-gray-200'
+        }`}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-slate-400 text-sm font-medium">Total Trades</p>
-              <p className="text-2xl font-bold text-white">{totalTrades}</p>
+              <p className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Total Trades</p>
+              <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{totalTrades}</p>
             </div>
             <Calendar className="h-8 w-8 text-blue-500" />
           </div>
         </div>
 
-        <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
+        <div className={`rounded-2xl shadow-xl border p-6 ${
+          isDark 
+            ? 'bg-gray-800 border-gray-700' 
+            : 'bg-white border-gray-200'
+        }`}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-slate-400 text-sm font-medium">Win Rate</p>
+              <p className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Win Rate</p>
               <p className="text-2xl font-bold text-green-400">{winRate}%</p>
             </div>
             <TrendingUp className="h-8 w-8 text-green-500" />
@@ -136,17 +150,25 @@ const TradingHistory: React.FC = () => {
       </div>
 
       {/* Filters and Controls */}
-      <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
+      <div className={`rounded-2xl shadow-xl border p-6 ${
+        isDark 
+          ? 'bg-gray-800 border-gray-700' 
+          : 'bg-white border-gray-200'
+      }`}>
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0">
-          <h2 className="text-xl font-semibold text-white">Trading History</h2>
+          <h2 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Trading History</h2>
           
           <div className="flex flex-wrap items-center space-x-4">
             <div className="flex items-center space-x-2">
-              <Filter className="h-4 w-4 text-slate-400" />
+              <Filter className={`h-4 w-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
               <select
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
-                className="bg-slate-700 text-white px-3 py-2 rounded border border-slate-600 focus:border-blue-500 focus:outline-none"
+                className={`px-3 py-2 rounded-lg border focus:border-blue-500 focus:outline-none transition-colors duration-300 ${
+                  isDark 
+                    ? 'bg-gray-700 text-white border-gray-600' 
+                    : 'bg-white text-gray-900 border-gray-300'
+                }`}
               >
                 <option value="all">All Trades</option>
                 <option value="buy">Buy Orders</option>
@@ -159,7 +181,11 @@ const TradingHistory: React.FC = () => {
             <select
               value={dateRange}
               onChange={(e) => setDateRange(e.target.value)}
-              className="bg-slate-700 text-white px-3 py-2 rounded border border-slate-600 focus:border-blue-500 focus:outline-none"
+              className={`px-3 py-2 rounded-lg border focus:border-blue-500 focus:outline-none transition-colors duration-300 ${
+                isDark 
+                  ? 'bg-gray-700 text-white border-gray-600' 
+                  : 'bg-white text-gray-900 border-gray-300'
+              }`}
             >
               <option value="1d">Last 24 Hours</option>
               <option value="7d">Last 7 Days</option>
@@ -167,7 +193,7 @@ const TradingHistory: React.FC = () => {
               <option value="90d">Last 90 Days</option>
             </select>
 
-            <button className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition-colors">
+            <button className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2 rounded-lg transition-all duration-300 hover:shadow-lg hover:scale-105">
               <Download className="h-4 w-4" />
               <span>Export</span>
             </button>
@@ -176,43 +202,57 @@ const TradingHistory: React.FC = () => {
       </div>
 
       {/* Trading Table */}
-      <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
+      <div className={`rounded-2xl shadow-xl border overflow-hidden ${
+        isDark 
+          ? 'bg-gray-800 border-gray-700' 
+          : 'bg-white border-gray-200'
+      }`}>
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-slate-700">
+            <thead className={isDark ? 'bg-gray-700' : 'bg-gray-50'}>
               <tr>
-                <th className="text-left py-3 px-4 font-medium text-slate-300">Asset</th>
-                <th className="text-left py-3 px-4 font-medium text-slate-300">Type</th>
-                <th className="text-left py-3 px-4 font-medium text-slate-300">Quantity</th>
-                <th className="text-left py-3 px-4 font-medium text-slate-300">Price</th>
-                <th className="text-left py-3 px-4 font-medium text-slate-300">Total</th>
-                <th className="text-left py-3 px-4 font-medium text-slate-300">Sentiment</th>
-                <th className="text-left py-3 px-4 font-medium text-slate-300">P&L</th>
-                <th className="text-left py-3 px-4 font-medium text-slate-300">Date</th>
-                <th className="text-left py-3 px-4 font-medium text-slate-300">Status</th>
+                <th className={`text-left py-3 px-4 font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Asset</th>
+                <th className={`text-left py-3 px-4 font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Type</th>
+                <th className={`text-left py-3 px-4 font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Quantity</th>
+                <th className={`text-left py-3 px-4 font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Price</th>
+                <th className={`text-left py-3 px-4 font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Total</th>
+                <th className={`text-left py-3 px-4 font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Sentiment</th>
+                <th className={`text-left py-3 px-4 font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>P&L</th>
+                <th className={`text-left py-3 px-4 font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Date</th>
+                <th className={`text-left py-3 px-4 font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-700">
+            <tbody className={`divide-y ${isDark ? 'divide-gray-700' : 'divide-gray-200'}`}>
               {filteredTrades.map((trade) => (
-                <tr key={trade.id} className="hover:bg-slate-700 transition-colors">
+                <tr key={trade.id} className={`transition-colors duration-300 ${
+                  isDark 
+                    ? 'hover:bg-gray-700' 
+                    : 'hover:bg-gray-50'
+                }`}>
                   <td className="py-3 px-4">
                     <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-slate-600 rounded-full flex items-center justify-center">
-                        <span className="text-white font-bold text-xs">{trade.symbol.substring(0, 2)}</span>
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                        isDark ? 'bg-gray-600' : 'bg-gray-200'
+                      }`}>
+                        <span className={`font-bold text-xs ${isDark ? 'text-white' : 'text-gray-700'}`}>
+                          {trade.symbol.substring(0, 2)}
+                        </span>
                       </div>
-                      <span className="text-white font-medium">{trade.symbol}</span>
+                      <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{trade.symbol}</span>
                     </div>
                   </td>
                   <td className="py-3 px-4">
                     <span className={`px-2 py-1 rounded text-xs font-semibold uppercase ${
-                      trade.type === 'buy' ? 'bg-green-900 text-green-300' : 'bg-red-900 text-red-300'
+                      trade.type === 'buy' 
+                        ? isDark ? 'bg-green-900/30 text-green-300' : 'bg-green-100 text-green-700'
+                        : isDark ? 'bg-red-900/30 text-red-300' : 'bg-red-100 text-red-700'
                     }`}>
                       {trade.type}
                     </span>
                   </td>
-                  <td className="py-3 px-4 text-white">{trade.quantity}</td>
-                  <td className="py-3 px-4 text-white">${trade.price.toFixed(2)}</td>
-                  <td className="py-3 px-4 text-white">${trade.total.toLocaleString()}</td>
+                  <td className={`py-3 px-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{trade.quantity}</td>
+                  <td className={`py-3 px-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>${trade.price.toFixed(2)}</td>
+                  <td className={`py-3 px-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>${trade.total.toLocaleString()}</td>
                   <td className="py-3 px-4">
                     <div className="flex items-center space-x-2">
                       <span className={`text-sm font-medium ${
@@ -221,7 +261,7 @@ const TradingHistory: React.FC = () => {
                       }`}>
                         {(trade.sentiment * 100).toFixed(0)}%
                       </span>
-                      <div className="w-8 h-1 bg-slate-600 rounded">
+                      <div className={`w-8 h-1 rounded ${isDark ? 'bg-gray-600' : 'bg-gray-300'}`}>
                         <div 
                           className={`h-full rounded ${
                             trade.sentiment >= 0.6 ? 'bg-green-400' : 
@@ -234,19 +274,21 @@ const TradingHistory: React.FC = () => {
                   </td>
                   <td className="py-3 px-4">
                     <span className={`font-semibold ${
-                      trade.pnl > 0 ? 'text-green-400' : trade.pnl < 0 ? 'text-red-400' : 'text-slate-400'
+                      trade.pnl > 0 ? 'text-green-400' : trade.pnl < 0 ? 'text-red-400' : isDark ? 'text-gray-400' : 'text-gray-500'
                     }`}>
                       {trade.pnl > 0 ? '+' : ''}${trade.pnl.toFixed(2)}
                     </span>
                   </td>
-                  <td className="py-3 px-4 text-slate-300">
+                  <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
                     {trade.timestamp.toLocaleDateString()} {trade.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </td>
                   <td className="py-3 px-4">
                     <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                      trade.status === 'completed' ? 'bg-green-900 text-green-300' :
-                      trade.status === 'pending' ? 'bg-yellow-900 text-yellow-300' :
-                      'bg-red-900 text-red-300'
+                      trade.status === 'completed' 
+                        ? isDark ? 'bg-green-900/30 text-green-300' : 'bg-green-100 text-green-700'
+                        : trade.status === 'pending' 
+                        ? isDark ? 'bg-yellow-900/30 text-yellow-300' : 'bg-yellow-100 text-yellow-700'
+                        : isDark ? 'bg-red-900/30 text-red-300' : 'bg-red-100 text-red-700'
                     }`}>
                       {trade.status}
                     </span>

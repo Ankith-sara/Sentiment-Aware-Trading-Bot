@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Key, Shield, AlertTriangle, Save, Eye, EyeOff, Zap, Target, DollarSign } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
 
 const SettingsPanel: React.FC = () => {
+  const { isDark } = useTheme();
   const [showApiKeys, setShowApiKeys] = useState(false);
   const [settings, setSettings] = useState({
     // API Configuration
@@ -55,24 +57,38 @@ const SettingsPanel: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
-        <h2 className="text-xl font-semibold text-white flex items-center">
+      <div className={`rounded-2xl shadow-xl border p-6 ${
+        isDark 
+          ? 'bg-gray-800 border-gray-700' 
+          : 'bg-white border-gray-200'
+      }`}>
+        <h2 className={`text-xl font-semibold flex items-center ${isDark ? 'text-white' : 'text-gray-900'}`}>
           <Shield className="h-6 w-6 mr-3 text-blue-500" />
           Bot Configuration
         </h2>
-        <p className="text-slate-400 mt-2">Configure your sentiment-aware trading bot settings and risk parameters.</p>
+        <p className={`mt-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+          Configure your sentiment-aware trading bot settings and risk parameters.
+        </p>
       </div>
 
       {/* API Configuration */}
-      <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
+      <div className={`rounded-2xl shadow-xl border p-6 ${
+        isDark 
+          ? 'bg-gray-800 border-gray-700' 
+          : 'bg-white border-gray-200'
+      }`}>
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-white flex items-center">
+          <h3 className={`text-lg font-semibold flex items-center ${isDark ? 'text-white' : 'text-gray-900'}`}>
             <Key className="h-5 w-5 mr-2 text-yellow-500" />
             API Configuration
           </h3>
           <button
             onClick={() => setShowApiKeys(!showApiKeys)}
-            className="flex items-center space-x-2 text-slate-400 hover:text-white transition-colors"
+            className={`flex items-center space-x-2 transition-colors duration-300 ${
+              isDark 
+                ? 'text-gray-400 hover:text-white' 
+                : 'text-gray-500 hover:text-gray-900'
+            }`}
           >
             {showApiKeys ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             <span>{showApiKeys ? 'Hide' : 'Show'} Keys</span>
@@ -81,64 +97,98 @@ const SettingsPanel: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">Alpaca API Key</label>
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+              Alpaca API Key
+            </label>
             <input
               type={showApiKeys ? 'text' : 'password'}
               value={settings.alpacaApiKey}
               onChange={(e) => handleInputChange('alpacaApiKey', e.target.value)}
-              className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:border-blue-500 focus:outline-none"
+              className={`w-full border rounded-lg px-3 py-2 focus:border-blue-500 focus:outline-none transition-colors duration-300 ${
+                isDark 
+                  ? 'bg-gray-700 border-gray-600 text-white' 
+                  : 'bg-white border-gray-300 text-gray-900'
+              }`}
               placeholder="Enter your Alpaca API key"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">Alpaca Secret Key</label>
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+              Alpaca Secret Key
+            </label>
             <input
               type={showApiKeys ? 'text' : 'password'}
               value={settings.alpacaSecretKey}
               onChange={(e) => handleInputChange('alpacaSecretKey', e.target.value)}
-              className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:border-blue-500 focus:outline-none"
+              className={`w-full border rounded-lg px-3 py-2 focus:border-blue-500 focus:outline-none transition-colors duration-300 ${
+                isDark 
+                  ? 'bg-gray-700 border-gray-600 text-white' 
+                  : 'bg-white border-gray-300 text-gray-900'
+              }`}
               placeholder="Enter your Alpaca secret key"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">Finnhub API Key</label>
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+              Finnhub API Key
+            </label>
             <input
               type={showApiKeys ? 'text' : 'password'}
               value={settings.finnhubApiKey}
               onChange={(e) => handleInputChange('finnhubApiKey', e.target.value)}
-              className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:border-blue-500 focus:outline-none"
+              className={`w-full border rounded-lg px-3 py-2 focus:border-blue-500 focus:outline-none transition-colors duration-300 ${
+                isDark 
+                  ? 'bg-gray-700 border-gray-600 text-white' 
+                  : 'bg-white border-gray-300 text-gray-900'
+              }`}
               placeholder="Enter your Finnhub API key"
             />
           </div>
         </div>
 
-        <div className="mt-4 p-4 bg-blue-900 border border-blue-700 rounded-lg">
+        <div className={`mt-4 p-4 border rounded-lg ${
+          isDark 
+            ? 'bg-blue-900/30 border-blue-700' 
+            : 'bg-blue-50 border-blue-200'
+        }`}>
           <div className="flex items-start space-x-2">
             <Shield className="h-5 w-5 text-blue-400 mt-0.5" />
             <div>
-              <p className="text-blue-300 font-medium">Security Note</p>
-              <p className="text-blue-200 text-sm">API keys are encrypted and securely stored. Never share your keys with third parties.</p>
+              <p className={`font-medium ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>Security Note</p>
+              <p className={`text-sm ${isDark ? 'text-blue-200' : 'text-blue-600'}`}>
+                API keys are encrypted and securely stored. Never share your keys with third parties.
+              </p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Trading Configuration */}
-      <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
-        <h3 className="text-lg font-semibold text-white flex items-center mb-6">
+      <div className={`rounded-2xl shadow-xl border p-6 ${
+        isDark 
+          ? 'bg-gray-800 border-gray-700' 
+          : 'bg-white border-gray-200'
+      }`}>
+        <h3 className={`text-lg font-semibold flex items-center mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>
           <Zap className="h-5 w-5 mr-2 text-green-500" />
           Trading Configuration
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">Trading Mode</label>
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+              Trading Mode
+            </label>
             <select
               value={settings.tradingMode}
               onChange={(e) => handleInputChange('tradingMode', e.target.value)}
-              className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:border-blue-500 focus:outline-none"
+              className={`w-full border rounded-lg px-3 py-2 focus:border-blue-500 focus:outline-none transition-colors duration-300 ${
+                isDark 
+                  ? 'bg-gray-700 border-gray-600 text-white' 
+                  : 'bg-white border-gray-300 text-gray-900'
+              }`}
             >
               {tradingModes.map((mode) => (
                 <option key={mode.value} value={mode.value}>
@@ -146,53 +196,75 @@ const SettingsPanel: React.FC = () => {
                 </option>
               ))}
             </select>
-            <p className="text-slate-400 text-xs mt-1">
+            <p className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
               {tradingModes.find(mode => mode.value === settings.tradingMode)?.description}
             </p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">Max Position Size ($)</label>
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+              Max Position Size ($)
+            </label>
             <input
               type="number"
               value={settings.maxPositionSize}
               onChange={(e) => handleInputChange('maxPositionSize', parseInt(e.target.value))}
-              className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:border-blue-500 focus:outline-none"
+              className={`w-full border rounded-lg px-3 py-2 focus:border-blue-500 focus:outline-none transition-colors duration-300 ${
+                isDark 
+                  ? 'bg-gray-700 border-gray-600 text-white' 
+                  : 'bg-white border-gray-300 text-gray-900'
+              }`}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">Max Daily Loss ($)</label>
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+              Max Daily Loss ($)
+            </label>
             <input
               type="number"
               value={settings.maxDailyLoss}
               onChange={(e) => handleInputChange('maxDailyLoss', parseInt(e.target.value))}
-              className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:border-blue-500 focus:outline-none"
+              className={`w-full border rounded-lg px-3 py-2 focus:border-blue-500 focus:outline-none transition-colors duration-300 ${
+                isDark 
+                  ? 'bg-gray-700 border-gray-600 text-white' 
+                  : 'bg-white border-gray-300 text-gray-900'
+              }`}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">Max Open Positions</label>
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+              Max Open Positions
+            </label>
             <input
               type="number"
               value={settings.maxOpenPositions}
               onChange={(e) => handleInputChange('maxOpenPositions', parseInt(e.target.value))}
-              className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:border-blue-500 focus:outline-none"
+              className={`w-full border rounded-lg px-3 py-2 focus:border-blue-500 focus:outline-none transition-colors duration-300 ${
+                isDark 
+                  ? 'bg-gray-700 border-gray-600 text-white' 
+                  : 'bg-white border-gray-300 text-gray-900'
+              }`}
             />
           </div>
         </div>
       </div>
 
       {/* Sentiment Configuration */}
-      <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
-        <h3 className="text-lg font-semibold text-white flex items-center mb-6">
+      <div className={`rounded-2xl shadow-xl border p-6 ${
+        isDark 
+          ? 'bg-gray-800 border-gray-700' 
+          : 'bg-white border-gray-200'
+      }`}>
+        <h3 className={`text-lg font-semibold flex items-center mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>
           <Target className="h-5 w-5 mr-2 text-purple-500" />
           Sentiment Analysis
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
               Min Sentiment Threshold ({(settings.minSentimentThreshold * 100).toFixed(0)}%)
             </label>
             <input
@@ -202,13 +274,17 @@ const SettingsPanel: React.FC = () => {
               step="0.05"
               value={settings.minSentimentThreshold}
               onChange={(e) => handleInputChange('minSentimentThreshold', parseFloat(e.target.value))}
-              className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer"
+              className={`w-full h-2 rounded-lg appearance-none cursor-pointer ${
+                isDark ? 'bg-gray-700' : 'bg-gray-200'
+              }`}
             />
-            <p className="text-slate-400 text-xs mt-1">Minimum sentiment score to trigger buy signals</p>
+            <p className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+              Minimum sentiment score to trigger buy signals
+            </p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
               Max Sentiment Threshold ({(settings.maxSentimentThreshold * 100).toFixed(0)}%)
             </label>
             <input
@@ -218,13 +294,17 @@ const SettingsPanel: React.FC = () => {
               step="0.05"
               value={settings.maxSentimentThreshold}
               onChange={(e) => handleInputChange('maxSentimentThreshold', parseFloat(e.target.value))}
-              className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer"
+              className={`w-full h-2 rounded-lg appearance-none cursor-pointer ${
+                isDark ? 'bg-gray-700' : 'bg-gray-200'
+              }`}
             />
-            <p className="text-slate-400 text-xs mt-1">Maximum sentiment score to trigger sell signals</p>
+            <p className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+              Maximum sentiment score to trigger sell signals
+            </p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
               Sentiment Weight ({(settings.sentimentWeight * 100).toFixed(0)}%)
             </label>
             <input
@@ -238,13 +318,17 @@ const SettingsPanel: React.FC = () => {
                 handleInputChange('sentimentWeight', sentiment);
                 handleInputChange('technicalWeight', 1 - sentiment);
               }}
-              className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer"
+              className={`w-full h-2 rounded-lg appearance-none cursor-pointer ${
+                isDark ? 'bg-gray-700' : 'bg-gray-200'
+              }`}
             />
-            <p className="text-slate-400 text-xs mt-1">How much to weight sentiment vs technical analysis</p>
+            <p className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+              How much to weight sentiment vs technical analysis
+            </p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
               Technical Weight ({(settings.technicalWeight * 100).toFixed(0)}%)
             </label>
             <input
@@ -258,48 +342,74 @@ const SettingsPanel: React.FC = () => {
                 handleInputChange('technicalWeight', technical);
                 handleInputChange('sentimentWeight', 1 - technical);
               }}
-              className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer"
+              className={`w-full h-2 rounded-lg appearance-none cursor-pointer ${
+                isDark ? 'bg-gray-700' : 'bg-gray-200'
+              }`}
             />
-            <p className="text-slate-400 text-xs mt-1">How much to weight technical analysis vs sentiment</p>
+            <p className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+              How much to weight technical analysis vs sentiment
+            </p>
           </div>
         </div>
       </div>
 
       {/* Risk Management */}
-      <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
-        <h3 className="text-lg font-semibold text-white flex items-center mb-6">
+      <div className={`rounded-2xl shadow-xl border p-6 ${
+        isDark 
+          ? 'bg-gray-800 border-gray-700' 
+          : 'bg-white border-gray-200'
+      }`}>
+        <h3 className={`text-lg font-semibold flex items-center mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>
           <AlertTriangle className="h-5 w-5 mr-2 text-red-500" />
           Risk Management
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">Stop Loss Percentage (%)</label>
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+              Stop Loss Percentage (%)
+            </label>
             <input
               type="number"
               step="0.5"
               value={settings.stopLossPercentage}
               onChange={(e) => handleInputChange('stopLossPercentage', parseFloat(e.target.value))}
-              className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:border-blue-500 focus:outline-none"
+              className={`w-full border rounded-lg px-3 py-2 focus:border-blue-500 focus:outline-none transition-colors duration-300 ${
+                isDark 
+                  ? 'bg-gray-700 border-gray-600 text-white' 
+                  : 'bg-white border-gray-300 text-gray-900'
+              }`}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">Take Profit Percentage (%)</label>
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+              Take Profit Percentage (%)
+            </label>
             <input
               type="number"
               step="0.5"
               value={settings.takeProfitPercentage}
               onChange={(e) => handleInputChange('takeProfitPercentage', parseFloat(e.target.value))}
-              className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:border-blue-500 focus:outline-none"
+              className={`w-full border rounded-lg px-3 py-2 focus:border-blue-500 focus:outline-none transition-colors duration-300 ${
+                isDark 
+                  ? 'bg-gray-700 border-gray-600 text-white' 
+                  : 'bg-white border-gray-300 text-gray-900'
+              }`}
             />
           </div>
         </div>
       </div>
 
       {/* Notifications */}
-      <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
-        <h3 className="text-lg font-semibold text-white mb-6">Notification Settings</h3>
+      <div className={`rounded-2xl shadow-xl border p-6 ${
+        isDark 
+          ? 'bg-gray-800 border-gray-700' 
+          : 'bg-white border-gray-200'
+      }`}>
+        <h3 className={`text-lg font-semibold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          Notification Settings
+        </h3>
 
         <div className="space-y-4">
           {[
@@ -308,10 +418,12 @@ const SettingsPanel: React.FC = () => {
             { key: 'sentimentAlerts', label: 'Sentiment Alerts', description: 'Alerts for significant sentiment changes' },
             { key: 'riskAlerts', label: 'Risk Alerts', description: 'Notifications for risk threshold breaches' },
           ].map((setting) => (
-            <div key={setting.key} className="flex items-center justify-between p-4 bg-slate-700 rounded-lg">
+            <div key={setting.key} className={`flex items-center justify-between p-4 rounded-lg ${
+              isDark ? 'bg-gray-700' : 'bg-gray-50'
+            }`}>
               <div>
-                <p className="text-white font-medium">{setting.label}</p>
-                <p className="text-slate-400 text-sm">{setting.description}</p>
+                <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{setting.label}</p>
+                <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{setting.description}</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -320,7 +432,9 @@ const SettingsPanel: React.FC = () => {
                   onChange={(e) => handleInputChange(setting.key, e.target.checked)}
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                <div className={`w-11 h-6 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 ${
+                  isDark ? 'bg-gray-600' : 'bg-gray-300'
+                }`}></div>
               </label>
             </div>
           ))}
@@ -331,7 +445,7 @@ const SettingsPanel: React.FC = () => {
       <div className="flex justify-end">
         <button
           onClick={handleSave}
-          className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors font-medium"
+          className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-3 rounded-xl transition-all duration-300 hover:shadow-lg hover:scale-105 font-medium"
         >
           <Save className="h-5 w-5" />
           <span>Save Settings</span>
