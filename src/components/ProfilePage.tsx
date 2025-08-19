@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { User, Mail, Phone, MapPin, Calendar, Award, TrendingUp, DollarSign, Activity, Edit3, Save, X, Camera, Shield, Star, Zap } from 'lucide-react';
+import React, { useState } from 'react';
+import { User, Mail, Phone, MapPin, Calendar, Award, TrendingUp, Activity, Edit3, Save, X, Camera, Shield, Star, Zap } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 

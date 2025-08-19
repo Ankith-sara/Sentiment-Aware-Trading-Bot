@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, IndianRupee, Activity, AlertTriangle, CheckCircle, BarChart3, Target, Zap } from 'lucide-react';
+import { TrendingUp, TrendingDown, IndianRupee, Activity, BarChart3, Target, Zap } from 'lucide-react';
 
 interface MarketData {
   symbol: string;

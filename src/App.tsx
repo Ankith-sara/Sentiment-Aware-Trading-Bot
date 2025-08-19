@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, Activity, Settings, Bell, DollarSign, BarChart3, Brain, Sun, Moon, LogOut, User, Wallet, Shield, Zap } from 'lucide-react';
+import { TrendingUp, Activity, Settings, Bell, BarChart3, Brain, Sun, Moon, LogOut, User, Wallet, Zap } from 'lucide-react';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import AuthWrapper from './components/Auth/AuthWrapper';

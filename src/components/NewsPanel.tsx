@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Brain, TrendingUp, TrendingDown, Clock, ExternalLink, Filter } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Key, Shield, AlertTriangle, Save, Eye, EyeOff, Zap, Target, DollarSign } from 'lucide-react';
+import { Key, Shield, AlertTriangle, Save, Eye, EyeOff, Zap, Target} from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 
 const SettingsPanel: React.FC = () => {
