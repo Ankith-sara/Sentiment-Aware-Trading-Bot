@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown, IndianRupee, Activity, BarChart3, Target, Zap } from 'lucide-react';
+import { apiService } from '../services/api';
+import { useTheme } from '../contexts/ThemeContext';
+import { useWebSocket } from '../hooks/useWebSocket';
 
 interface MarketData {
   symbol: string;
@@ -20,20 +23,13 @@ interface Trade {
   sentiment: number;
 }
 
-// This component should receive isDark as a prop from the parent
-const Dashboard: React.FC<{ isDark?: boolean }> = ({ isDark = false }) => {
-  const [marketData, setMarketData] = useState<MarketData[]>([
-    { symbol: 'AAPL', price: 14786.40, change: 203.25, changePercent: 1.39, sentiment: 0.76, volume: 45623000 },
-    { symbol: 'TSLA', price: 20869.52, change: -432.15, changePercent: -2.03, sentiment: 0.42, volume: 67432000 },
-    { symbol: 'MSFT', price: 28048.13, change: 341.76, changePercent: 1.23, sentiment: 0.68, volume: 23145000 },
-    { symbol: 'NVDA', price: 59870.59, change: 1068.21, changePercent: 1.82, sentiment: 0.84, volume: 34567000 },
-  ]);
+const Dashboard: React.FC = () => {
+  const { isDark } = useTheme();
+  const [marketData, setMarketData] = useState<MarketData[]>([]);
+  const [recentTrades, setRecentTrades] = useState<Trade[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [recentTrades, setRecentTrades] = useState<Trade[]>([
-    { id: '1', symbol: 'AAPL', type: 'buy', quantity: 100, price: 14683.04, timestamp: new Date(Date.now() - 300000), sentiment: 0.78 },
-    { id: '2', symbol: 'NVDA', type: 'sell', quantity: 50, price: 59668.37, timestamp: new Date(Date.now() - 600000), sentiment: 0.82 },
-    { id: '3', symbol: 'MSFT', type: 'buy', quantity: 75, price: 27806.83, timestamp: new Date(Date.now() - 1200000), sentiment: 0.65 },
-  ]);
 
   const [botStatus, setBotStatus] = useState({
     isActive: true,
@@ -42,23 +38,125 @@ const Dashboard: React.FC<{ isDark?: boolean }> = ({ isDark = false }) => {
     accuracy: 78.5,
   });
 
-  // Simulate real-time updates
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setMarketData(prev => prev.map(asset => ({
-        ...asset,
-        price: asset.price + (Math.random() - 0.5) * 166,
-        change: asset.change + (Math.random() - 0.5) * 41.5,
-        sentiment: Math.max(0, Math.min(1, asset.sentiment + (Math.random() - 0.5) * 0.1)),
-      })));
-    }, 3000);
+  const watchedSymbols = ['AAPL', 'TSLA', 'MSFT', 'NVDA'];
 
-    return () => clearInterval(interval);
+  // WebSocket connection for real-time updates
+  const { isConnected: wsConnected } = useWebSocket('ws://localhost:3001', {
+    onMessage: (message) => {
+      if (message.type === 'market_data_update') {
+        // Update market data with real-time prices
+        setMarketData(prevData => 
+          prevData.map(asset => {
+            const update = message.data.find((item: any) => item.symbol === asset.symbol);
+            return update ? { ...asset, ...update } : asset;
+          })
+        );
+      } else if (message.type === 'trade_executed') {
+        // Add new trade to recent trades
+        const newTrade = {
+          ...message.data.trade,
+          timestamp: new Date(message.data.trade.timestamp)
+        };
+        setRecentTrades(prev => [newTrade, ...prev.slice(0, 2)]);
+      }
+    },
+    onConnect: () => {
+      console.log('WebSocket connected');
+    },
+    onDisconnect: () => {
+      console.log('WebSocket disconnected');
+    }
+  });
+
+  // Fetch initial data
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Fetch market data
+        const marketDataResponse = await apiService.getMarketData({ symbols: watchedSymbols });
+        
+        // Fetch trading signals to get sentiment scores
+        const tradingSignals = await apiService.getTradingSignals(watchedSymbols);
+        
+        // Combine market data with sentiment
+        const combinedData = marketDataResponse.map(market => {
+          const signal = tradingSignals.find(s => s.symbol === market.symbol);
+          return {
+            symbol: market.symbol,
+            price: market.price,
+            change: market.change,
+            changePercent: market.change_percent,
+            sentiment: signal?.sentiment_score || 0.5,
+            volume: market.volume
+          };
+        });
+
+        setMarketData(combinedData);
+
+        // Fetch trading history
+        const tradesResponse = await apiService.getTradingHistory();
+        const formattedTrades = tradesResponse.map(trade => ({
+          ...trade,
+          timestamp: new Date(trade.timestamp)
+        }));
+        setRecentTrades(formattedTrades.slice(0, 3)); // Show only recent 3 trades
+
+      } catch (err) {
+        console.error('Error fetching dashboard data:', err);
+        setError('Failed to load dashboard data');
+        // Fallback to mock data
+        setMarketData([
+          { symbol: 'AAPL', price: 176.88, change: 2.34, changePercent: 1.34, sentiment: 0.76, volume: 45623000 },
+          { symbol: 'TSLA', price: 248.32, change: -4.32, changePercent: -1.71, sentiment: 0.42, volume: 67432000 },
+          { symbol: 'MSFT', price: 335.22, change: 3.41, changePercent: 1.03, sentiment: 0.68, volume: 23145000 },
+          { symbol: 'NVDA', price: 718.45, change: 12.68, changePercent: 1.79, sentiment: 0.84, volume: 34567000 },
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInitialData();
   }, []);
 
-  const totalValue = 10611461.60;
-  const todayChange = 194342.96;
-  const todayChangePercent = 1.87;
+  // Real-time updates
+  useEffect(() => {
+    if (loading) return;
+
+    const interval = setInterval(async () => {
+      try {
+        // Fetch updated market data
+        const marketDataResponse = await apiService.getMarketData({ symbols: watchedSymbols });
+        const tradingSignals = await apiService.getTradingSignals(watchedSymbols);
+        
+        const combinedData = marketDataResponse.map(market => {
+          const signal = tradingSignals.find(s => s.symbol === market.symbol);
+          return {
+            symbol: market.symbol,
+            price: market.price,
+            change: market.change,
+            changePercent: market.change_percent,
+            sentiment: signal?.sentiment_score || 0.5,
+            volume: market.volume
+          };
+        });
+
+        setMarketData(combinedData);
+      } catch (err) {
+        console.error('Error updating market data:', err);
+      }
+    }, 30000); // Update every 30 seconds
+
+    return () => clearInterval(interval);
+  }, [loading]);
+
+  // Calculate portfolio metrics
+  const totalValue = marketData.reduce((sum, asset) => sum + (asset.price * 100), 0); // Assume 100 shares each
+  const todayChange = marketData.reduce((sum, asset) => sum + (asset.change * 100), 0);
+  const todayChangePercent = totalValue > 0 ? (todayChange / (totalValue - todayChange)) * 100 : 0;
   const overallSentiment = marketData.reduce((acc, asset) => acc + asset.sentiment, 0) / marketData.length;
 
   const formatINR = (amount: number) => {
@@ -69,6 +167,42 @@ const Dashboard: React.FC<{ isDark?: boolean }> = ({ isDark = false }) => {
       maximumFractionDigits: 2,
     }).format(amount);
   };
+
+  if (loading) {
+    return (
+      <div className={`min-h-screen transition-all duration-500 p-6 ${
+        isDark 
+          ? 'bg-gradient-to-br from-gray-900 via-slate-900 to-gray-800' 
+          : 'bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50'
+      }`}>
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+            <span className={`ml-4 text-lg ${isDark ? 'text-white' : 'text-gray-900'}`}>Loading dashboard...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={`min-h-screen transition-all duration-500 p-6 ${
+        isDark 
+          ? 'bg-gradient-to-br from-gray-900 via-slate-900 to-gray-800' 
+          : 'bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50'
+      }`}>
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-center h-64">
+            <div className={`text-center ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              <p className="text-lg mb-4">{error}</p>
+              <p className="text-sm opacity-75">Using fallback data for demonstration</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`min-h-screen transition-all duration-500 p-6 ${

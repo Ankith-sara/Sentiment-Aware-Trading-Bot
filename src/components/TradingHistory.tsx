@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { TrendingUp, TrendingDown, Filter, Download, Calendar } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { apiService } from '../services/api';
 
 interface Trade {
   id: string;
@@ -19,69 +20,98 @@ const TradingHistory: React.FC = () => {
   const { isDark } = useTheme();
   const [filter, setFilter] = useState('all');
   const [dateRange, setDateRange] = useState('7d');
+  const [trades, setTrades] = useState<Trade[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const trades: Trade[] = [
-    {
-      id: '1',
-      symbol: 'AAPL',
-      type: 'buy',
-      quantity: 100,
-      price: 176.88,
-      total: 17688.00,
-      timestamp: new Date('2024-01-15T10:30:00'),
-      sentiment: 0.78,
-      pnl: 234.40,
-      status: 'completed'
-    },
-    {
-      id: '2',
-      symbol: 'NVDA',
-      type: 'sell',
-      quantity: 50,
-      price: 718.45,
-      total: 35922.50,
-      timestamp: new Date('2024-01-15T09:45:00'),
-      sentiment: 0.82,
-      pnl: 1245.80,
-      status: 'completed'
-    },
-    {
-      id: '3',
-      symbol: 'TSLA',
-      type: 'sell',
-      quantity: 25,
-      price: 248.32,
-      total: 6208.00,
-      timestamp: new Date('2024-01-14T14:20:00'),
-      sentiment: 0.35,
-      pnl: -156.75,
-      status: 'completed'
-    },
-    {
-      id: '4',
-      symbol: 'MSFT',
-      type: 'buy',
-      quantity: 75,
-      price: 335.22,
-      total: 25141.50,
-      timestamp: new Date('2024-01-14T11:15:00'),
-      sentiment: 0.65,
-      pnl: 456.30,
-      status: 'completed'
-    },
-    {
-      id: '5',
-      symbol: 'GOOGL',
-      type: 'buy',
-      quantity: 30,
-      price: 142.87,
-      total: 4286.10,
-      timestamp: new Date('2024-01-13T16:30:00'),
-      sentiment: 0.71,
-      pnl: 0,
-      status: 'pending'
-    },
-  ];
+  // Fetch trading history on component mount
+  React.useEffect(() => {
+    const fetchTradingHistory = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const tradesResponse = await apiService.getTradingHistory();
+        const formattedTrades = tradesResponse.map(trade => ({
+          ...trade,
+          timestamp: new Date(trade.timestamp)
+        }));
+        
+        setTrades(formattedTrades);
+      } catch (err) {
+        console.error('Error fetching trading history:', err);
+        setError('Failed to load trading history');
+        
+        // Fallback to mock data
+        setTrades([
+          {
+            id: '1',
+            symbol: 'AAPL',
+            type: 'buy',
+            quantity: 100,
+            price: 176.88,
+            total: 17688.00,
+            timestamp: new Date('2024-01-15T10:30:00'),
+            sentiment: 0.78,
+            pnl: 234.40,
+            status: 'completed'
+          },
+          {
+            id: '2',
+            symbol: 'NVDA',
+            type: 'sell',
+            quantity: 50,
+            price: 718.45,
+            total: 35922.50,
+            timestamp: new Date('2024-01-15T09:45:00'),
+            sentiment: 0.82,
+            pnl: 1245.80,
+            status: 'completed'
+          },
+          {
+            id: '3',
+            symbol: 'TSLA',
+            type: 'sell',
+            quantity: 25,
+            price: 248.32,
+            total: 6208.00,
+            timestamp: new Date('2024-01-14T14:20:00'),
+            sentiment: 0.35,
+            pnl: -156.75,
+            status: 'completed'
+          },
+          {
+            id: '4',
+            symbol: 'MSFT',
+            type: 'buy',
+            quantity: 75,
+            price: 335.22,
+            total: 25141.50,
+            timestamp: new Date('2024-01-14T11:15:00'),
+            sentiment: 0.65,
+            pnl: 456.30,
+            status: 'completed'
+          },
+          {
+            id: '5',
+            symbol: 'GOOGL',
+            type: 'buy',
+            quantity: 30,
+            price: 142.87,
+            total: 4286.10,
+            timestamp: new Date('2024-01-13T16:30:00'),
+            sentiment: 0.71,
+            pnl: 0,
+            status: 'pending'
+          },
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTradingHistory();
+  }, []);
 
   const filteredTrades = trades.filter(trade => {
     if (filter === 'all') return true;
@@ -96,8 +126,29 @@ const TradingHistory: React.FC = () => {
   const totalTrades = trades.length;
   const winRate = (trades.filter(t => t.pnl > 0).length / trades.length * 100).toFixed(1);
 
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+          <span className={`ml-4 text-lg ${isDark ? 'text-white' : 'text-gray-900'}`}>Loading trading history...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
+      {error && (
+        <div className={`rounded-lg p-4 border ${
+          isDark 
+            ? 'bg-yellow-900/30 border-yellow-700 text-yellow-300' 
+            : 'bg-yellow-100 border-yellow-300 text-yellow-800'
+        }`}>
+          <p className="text-sm">{error} - Showing demo data</p>
+        </div>
+      )}
+      
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className={`rounded-2xl shadow-xl border p-6 ${

@@ -1,6 +1,6 @@
 // API service for communicating with Python FastAPI microservices
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 const SENTIMENT_SERVICE_URL = import.meta.env.VITE_SENTIMENT_SERVICE_URL || 'http://localhost:8001';
 const TRADING_SERVICE_URL = import.meta.env.VITE_TRADING_SERVICE_URL || 'http://localhost:8002';
 const SCHEDULER_SERVICE_URL = import.meta.env.VITE_SCHEDULER_SERVICE_URL || 'http://localhost:8003';
@@ -102,40 +102,40 @@ class ApiService {
 
   // Backend API calls
   async login(email: string, password: string): Promise<{ token: string; user: any }> {
-    return this.makeRequest(API_BASE_URL, '/api/auth/login', {
+    return this.makeRequest(API_BASE_URL, '/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     });
   }
 
   async register(email: string, password: string, name: string): Promise<{ token: string; user: any }> {
-    return this.makeRequest(API_BASE_URL, '/api/auth/register', {
+    return this.makeRequest(API_BASE_URL, '/auth/register', {
       method: 'POST',
       body: JSON.stringify({ email, password, name }),
     });
   }
 
   async getUserProfile(): Promise<UserProfile> {
-    return this.makeRequest(API_BASE_URL, '/api/user/profile');
+    return this.makeRequest(API_BASE_URL, '/user/profile');
   }
 
   async updateUserProfile(profile: Partial<UserProfile>): Promise<{ message: string }> {
-    return this.makeRequest(API_BASE_URL, '/api/user/profile', {
+    return this.makeRequest(API_BASE_URL, '/user/profile', {
       method: 'PUT',
       body: JSON.stringify(profile),
     });
   }
 
   async getTradingHistory(): Promise<Trade[]> {
-    return this.makeRequest(API_BASE_URL, '/api/trading/history');
+    return this.makeRequest(API_BASE_URL, '/trading/history');
   }
 
   async getUserConfig(): Promise<any> {
-    return this.makeRequest(API_BASE_URL, '/api/user/config');
+    return this.makeRequest(API_BASE_URL, '/user/config');
   }
 
   async updateUserConfig(config: any): Promise<{ message: string }> {
-    return this.makeRequest(API_BASE_URL, '/api/user/config', {
+    return this.makeRequest(API_BASE_URL, '/user/config', {
       method: 'POST',
       body: JSON.stringify(config),
     });
@@ -180,17 +180,17 @@ class ApiService {
   // News and Data Service
   async getLatestNews(symbols?: string[]): Promise<any[]> {
     const params = symbols ? `?symbols=${symbols.join(',')}` : '';
-    return this.makeRequest(API_BASE_URL, `/api/news/latest${params}`);
+    return this.makeRequest(API_BASE_URL, `/news/latest${params}`);
   }
 
   async getNewsWithSentiment(symbols?: string[]): Promise<any[]> {
     const params = symbols ? `?symbols=${symbols.join(',')}` : '';
-    return this.makeRequest(API_BASE_URL, `/api/news/sentiment${params}`);
+    return this.makeRequest(API_BASE_URL, `/news/sentiment${params}`);
   }
 
   // Health check
   async healthCheck(): Promise<{ status: string; services: Record<string, boolean> }> {
-    return this.makeRequest(API_BASE_URL, '/api/health');
+    return this.makeRequest(API_BASE_URL, '/health');
   }
 
   // Scheduler Service
@@ -207,93 +207,5 @@ class ApiService {
 
 export const apiService = new ApiService();
 
-// Mock data for development when API is not available
-// Mock data for development when API is not available
-export const mockApiService = {
-  async analyzeSentiment(request: SentimentRequest): Promise<SentimentResponse> {
-    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API delay
-    
-    const score = Math.random();
-    return {
-      sentiment_score: score,
-      confidence: 0.85 + Math.random() * 0.15,
-      label: score > 0.6 ? 'positive' : score < 0.4 ? 'negative' : 'neutral',
-      processing_time: 0.15 + Math.random() * 0.1
-    };
-  },
-
-  async analyzeBatchSentiment(request: BatchSentimentRequest): Promise<BatchSentimentResponse> {
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    const results = request.texts.map(() => ({
-      sentiment_score: Math.random(),
-      confidence: 0.85 + Math.random() * 0.15,
-      label: Math.random() > 0.5 ? 'positive' : 'negative' as 'positive' | 'negative',
-      processing_time: 0.15 + Math.random() * 0.1
-    }));
-
-    return {
-      results,
-      total_processing_time: 0.8 + Math.random() * 0.4
-    };
-  },
-
-  async getTradingSignals(symbols: string[]): Promise<TradingSignal[]> {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    return symbols.map(symbol => ({
-      symbol,
-      action: ['buy', 'sell', 'hold'][Math.floor(Math.random() * 3)] as 'buy' | 'sell' | 'hold',
-      confidence: 0.7 + Math.random() * 0.3,
-      sentiment_score: Math.random(),
-      technical_score: Math.random(),
-      combined_score: Math.random(),
-      reasoning: `Based on sentiment analysis and technical indicators for ${symbol}`,
-      timestamp: new Date().toISOString()
-    }));
-  },
-
-  async getTradingHistory(): Promise<Trade[]> {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    return [
-      {
-        id: '1',
-        symbol: 'AAPL',
-        type: 'buy',
-        quantity: 100,
-        price: 176.88,
-        total: 17688.00,
-        timestamp: new Date('2024-01-15T10:30:00').toISOString(),
-        sentiment: 0.78,
-        pnl: 234.40,
-        status: 'completed'
-      },
-      {
-        id: '2',
-        symbol: 'NVDA',
-        type: 'sell',
-        quantity: 50,
-        price: 718.45,
-        total: 35922.50,
-        timestamp: new Date('2024-01-15T09:45:00').toISOString(),
-        sentiment: 0.82,
-        pnl: 1245.80,
-        status: 'completed'
-      }
-    ];
-  },
-
-  async getMarketData(request: MarketDataRequest): Promise<MarketDataResponse[]> {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    return request.symbols.map(symbol => ({
-      symbol,
-      price: 100 + Math.random() * 100,
-      change: (Math.random() - 0.5) * 10,
-      change_percent: (Math.random() - 0.5) * 5,
-      volume: Math.floor(Math.random() * 10000000),
-      timestamp: new Date().toISOString()
-    }));
-  }
-};
+// Fallback to mock data if API is unavailable
+export const useMockData = false; // Set to true for development without backend
