@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Brain, TrendingUp, TrendingDown, Clock, ExternalLink, Filter } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { apiService } from '../services/api';
 
 interface NewsItem {
   id: string;
@@ -18,75 +19,112 @@ const NewsPanel: React.FC = () => {
   const { isDark } = useTheme();
   const [filter, setFilter] = useState('all');
   const [selectedSymbol, setSelectedSymbol] = useState('all');
+  const [news, setNews] = useState<NewsItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
-  const [news] = useState<NewsItem[]>([
-    {
-      id: '1',
-      headline: 'Apple Reports Strong Q4 Earnings, iPhone Sales Exceed Expectations',
-      summary: 'Apple Inc. announced quarterly earnings that beat analyst expectations, driven by strong iPhone 15 sales and growing services revenue.',
-      source: 'Reuters',
-      timestamp: new Date(Date.now() - 1800000), // 30 min ago
-      sentiment: 0.85,
-      relevantSymbols: ['AAPL'],
-      url: '#',
-      impact: 'high'
-    },
-    {
-      id: '2',
-      headline: 'Tesla Faces Production Challenges at Berlin Gigafactory',
-      summary: 'Tesla is experiencing supply chain disruptions affecting production at its Berlin facility, potentially impacting Q4 delivery targets.',
-      source: 'Bloomberg',
-      timestamp: new Date(Date.now() - 3600000), // 1 hour ago
-      sentiment: 0.25,
-      relevantSymbols: ['TSLA'],
-      url: '#',
-      impact: 'medium'
-    },
-    {
-      id: '3',
-      headline: 'NVIDIA Announces New AI Chip Partnership with Major Cloud Providers',
-      summary: 'NVIDIA has secured partnerships with AWS, Google Cloud, and Microsoft Azure for its next-generation H200 AI chips.',
-      source: 'TechCrunch',
-      timestamp: new Date(Date.now() - 7200000), // 2 hours ago
-      sentiment: 0.78,
-      relevantSymbols: ['NVDA'],
-      url: '#',
-      impact: 'high'
-    },
-    {
-      id: '4',
-      headline: 'Microsoft Azure Revenue Growth Accelerates in Cloud Computing Segment',
-      summary: 'Microsoft reports 30% year-over-year growth in Azure revenue, outpacing competitors in the enterprise cloud market.',
-      source: 'Wall Street Journal',
-      timestamp: new Date(Date.now() - 10800000), // 3 hours ago
-      sentiment: 0.72,
-      relevantSymbols: ['MSFT'],
-      url: '#',
-      impact: 'medium'
-    },
-    {
-      id: '5',
-      headline: 'Federal Reserve Signals Potential Interest Rate Changes',
-      summary: 'Fed officials hint at possible rate adjustments in upcoming meetings, citing inflation data and employment figures.',
-      source: 'Financial Times',
-      timestamp: new Date(Date.now() - 14400000), // 4 hours ago
-      sentiment: 0.45,
-      relevantSymbols: ['AAPL', 'MSFT', 'NVDA', 'TSLA'],
-      url: '#',
-      impact: 'high'
-    },
-    {
-      id: '6',
-      headline: 'Tech Sector Shows Strong Momentum Despite Market Volatility',
-      summary: 'Technology stocks continue to outperform broader market indices, with AI and cloud computing driving growth.',
-      source: 'CNBC',
-      timestamp: new Date(Date.now() - 18000000), // 5 hours ago
-      sentiment: 0.68,
-      relevantSymbols: ['AAPL', 'MSFT', 'NVDA'],
-      url: '#',
-      impact: 'medium'
-    }
-  ]);
+  // Fetch news with sentiment on component mount
+  React.useEffect(() => {
+    const fetchNewsWithSentiment = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const newsResponse = await apiService.getNewsWithSentiment(['AAPL', 'TSLA', 'MSFT', 'NVDA']);
+        
+        const formattedNews = newsResponse.map((item, index) => ({
+          id: item.id || index.toString(),
+          headline: item.headline,
+          summary: item.summary,
+          source: item.source,
+          timestamp: new Date(item.timestamp),
+          sentiment: item.sentiment_score,
+          relevantSymbols: item.symbols || [],
+          url: item.url || '#',
+          impact: item.impact || 'medium' as 'high' | 'medium' | 'low'
+        }));
+        
+        setNews(formattedNews);
+      } catch (err) {
+        console.error('Error fetching news:', err);
+        setError('Failed to load news data');
+        
+        // Fallback to mock data
+        setNews([
+          {
+            id: '1',
+            headline: 'Apple Reports Strong Q4 Earnings, iPhone Sales Exceed Expectations',
+            summary: 'Apple Inc. announced quarterly earnings that beat analyst expectations, driven by strong iPhone 15 sales and growing services revenue.',
+            source: 'Reuters',
+            timestamp: new Date(Date.now() - 1800000),
+            sentiment: 0.85,
+            relevantSymbols: ['AAPL'],
+            url: '#',
+            impact: 'high'
+          },
+          {
+            id: '2',
+            headline: 'Tesla Faces Production Challenges at Berlin Gigafactory',
+            summary: 'Tesla is experiencing supply chain disruptions affecting production at its Berlin facility, potentially impacting Q4 delivery targets.',
+            source: 'Bloomberg',
+            timestamp: new Date(Date.now() - 3600000),
+            sentiment: 0.25,
+            relevantSymbols: ['TSLA'],
+            url: '#',
+            impact: 'medium'
+          },
+          {
+            id: '3',
+            headline: 'NVIDIA Announces New AI Chip Partnership with Major Cloud Providers',
+            summary: 'NVIDIA has secured partnerships with AWS, Google Cloud, and Microsoft Azure for its next-generation H200 AI chips.',
+            source: 'TechCrunch',
+            timestamp: new Date(Date.now() - 7200000),
+            sentiment: 0.78,
+            relevantSymbols: ['NVDA'],
+            url: '#',
+            impact: 'high'
+          },
+          {
+            id: '4',
+            headline: 'Microsoft Azure Revenue Growth Accelerates in Cloud Computing Segment',
+            summary: 'Microsoft reports 30% year-over-year growth in Azure revenue, outpacing competitors in the enterprise cloud market.',
+            source: 'Wall Street Journal',
+            timestamp: new Date(Date.now() - 10800000),
+            sentiment: 0.72,
+            relevantSymbols: ['MSFT'],
+            url: '#',
+            impact: 'medium'
+          },
+          {
+            id: '5',
+            headline: 'Federal Reserve Signals Potential Interest Rate Changes',
+            summary: 'Fed officials hint at possible rate adjustments in upcoming meetings, citing inflation data and employment figures.',
+            source: 'Financial Times',
+            timestamp: new Date(Date.now() - 14400000),
+            sentiment: 0.45,
+            relevantSymbols: ['AAPL', 'MSFT', 'NVDA', 'TSLA'],
+            url: '#',
+            impact: 'high'
+          },
+          {
+            id: '6',
+            headline: 'Tech Sector Shows Strong Momentum Despite Market Volatility',
+            summary: 'Technology stocks continue to outperform broader market indices, with AI and cloud computing driving growth.',
+            source: 'CNBC',
+            timestamp: new Date(Date.now() - 18000000),
+            sentiment: 0.68,
+            relevantSymbols: ['AAPL', 'MSFT', 'NVDA'],
+            url: '#',
+            impact: 'medium'
+          }
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNewsWithSentiment();
+  }, []);
 
   const filteredNews = news.filter(item => {
     if (filter === 'positive' && item.sentiment < 0.6) return false;
@@ -131,8 +169,29 @@ const NewsPanel: React.FC = () => {
     return date.toLocaleDateString();
   };
 
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+          <span className={`ml-4 text-lg ${isDark ? 'text-white' : 'text-gray-900'}`}>Loading news feed...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
+      {error && (
+        <div className={`rounded-lg p-4 border ${
+          isDark 
+            ? 'bg-yellow-900/30 border-yellow-700 text-yellow-300' 
+            : 'bg-yellow-100 border-yellow-300 text-yellow-800'
+        }`}>
+          <p className="text-sm">{error} - Showing demo data</p>
+        </div>
+      )}
+      
       {/* Header and Filters */}
       <div className={`rounded-2xl shadow-xl border p-6 ${
         isDark 
