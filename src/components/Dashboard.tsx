@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown, IndianRupee, Activity, BarChart3, Target, Zap } from 'lucide-react';
 import { apiService } from '../services/api';
 import { useTheme } from '../contexts/ThemeContext';
-import { useWebSocket } from '../hooks/useWebSocket';
+import { useAuth } from '../contexts/AuthContext';
+import { firebaseService } from '../services/firebase';
 
 interface MarketData {
   symbol: string;
@@ -25,11 +26,11 @@ interface Trade {
 
 const Dashboard: React.FC = () => {
   const { isDark } = useTheme();
+  const { currentUser } = useAuth();
   const [marketData, setMarketData] = useState<MarketData[]>([]);
   const [recentTrades, setRecentTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
 
   const [botStatus, setBotStatus] = useState({
     isActive: true,
@@ -40,36 +41,10 @@ const Dashboard: React.FC = () => {
 
   const watchedSymbols = ['AAPL', 'TSLA', 'MSFT', 'NVDA'];
 
-  // WebSocket connection for real-time updates
-  const { isConnected: wsConnected } = useWebSocket('ws://localhost:3001', {
-    onMessage: (message) => {
-      if (message.type === 'market_data_update') {
-        // Update market data with real-time prices
-        setMarketData(prevData => 
-          prevData.map(asset => {
-            const update = message.data.find((item: any) => item.symbol === asset.symbol);
-            return update ? { ...asset, ...update } : asset;
-          })
-        );
-      } else if (message.type === 'trade_executed') {
-        // Add new trade to recent trades
-        const newTrade = {
-          ...message.data.trade,
-          timestamp: new Date(message.data.trade.timestamp)
-        };
-        setRecentTrades(prev => [newTrade, ...prev.slice(0, 2)]);
-      }
-    },
-    onConnect: () => {
-      console.log('WebSocket connected');
-    },
-    onDisconnect: () => {
-      console.log('WebSocket disconnected');
-    }
-  });
-
   // Fetch initial data
   useEffect(() => {
+    if (!currentUser) return;
+
     const fetchInitialData = async () => {
       try {
         setLoading(true);
@@ -96,13 +71,18 @@ const Dashboard: React.FC = () => {
 
         setMarketData(combinedData);
 
-        // Fetch trading history
-        const tradesResponse = await apiService.getTradingHistory();
+        // Fetch trading history from Firebase
+        const tradesResponse = await firebaseService.getTrades(currentUser.uid, 3);
         const formattedTrades = tradesResponse.map(trade => ({
-          ...trade,
-          timestamp: new Date(trade.timestamp)
+          id: trade.id || '',
+          symbol: trade.symbol,
+          type: trade.action as 'buy' | 'sell',
+          quantity: trade.quantity,
+          price: trade.price,
+          timestamp: trade.createdAt?.toDate() || new Date(),
+          sentiment: trade.sentimentScore || 0.5
         }));
-        setRecentTrades(formattedTrades.slice(0, 3)); // Show only recent 3 trades
+        setRecentTrades(formattedTrades);
 
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
@@ -120,11 +100,33 @@ const Dashboard: React.FC = () => {
     };
 
     fetchInitialData();
-  }, []);
+  }, [currentUser]);
 
+  // Real-time Firebase listeners
+  useEffect(() => {
+    if (!currentUser) return;
+
+    // Subscribe to real-time trades
+    const unsubscribeTrades = firebaseService.subscribeToTrades(currentUser.uid, (trades) => {
+      const formattedTrades = trades.slice(0, 3).map(trade => ({
+        id: trade.id || '',
+        symbol: trade.symbol,
+        type: trade.action as 'buy' | 'sell',
+        quantity: trade.quantity,
+        price: trade.price,
+        timestamp: trade.createdAt?.toDate() || new Date(),
+        sentiment: trade.sentimentScore || 0.5
+      }));
+      setRecentTrades(formattedTrades);
+    });
+
+    return () => {
+      unsubscribeTrades();
+    };
+  }, [currentUser]);
   // Real-time updates
   useEffect(() => {
-    if (loading) return;
+    if (loading || !currentUser) return;
 
     const interval = setInterval(async () => {
       try {
@@ -151,7 +153,7 @@ const Dashboard: React.FC = () => {
     }, 30000); // Update every 30 seconds
 
     return () => clearInterval(interval);
-  }, [loading]);
+  }, [loading, currentUser]);
 
   // Calculate portfolio metrics
   const totalValue = marketData.reduce((sum, asset) => sum + (asset.price * 100), 0); // Assume 100 shares each

@@ -1,11 +1,45 @@
 import React, { useState } from 'react';
 import { Key, Shield, AlertTriangle, Save, Eye, EyeOff, Zap, Target} from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useAuth } from '../contexts/AuthContext';
+import { firebaseService, UserConfiguration } from '../services/firebase';
 
 const SettingsPanel: React.FC = () => {
   const { isDark } = useTheme();
+  const { currentUser } = useAuth();
   const [showApiKeys, setShowApiKeys] = useState(false);
-  const [settings, setSettings] = useState({
+  const [loading, setLoading] = useState(true);
+  const [settings, setSettings] = useState<UserConfiguration | null>(null);
+  const [editedSettings, setEditedSettings] = useState<Partial<UserConfiguration>>({});
+
+  // Load user configuration from Firebase
+  React.useEffect(() => {
+    if (!currentUser) return;
+
+    const loadSettings = async () => {
+      try {
+        setLoading(true);
+        let userConfig = await firebaseService.getUserConfiguration(currentUser.uid);
+        
+        if (!userConfig) {
+          // Create default configuration
+          await firebaseService.createDefaultUserConfiguration(currentUser.uid);
+          userConfig = await firebaseService.getUserConfiguration(currentUser.uid);
+        }
+        
+        setSettings(userConfig);
+        setEditedSettings(userConfig || {});
+      } catch (error) {
+        console.error('Error loading settings:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadSettings();
+  }, [currentUser]);
+
+  const [defaultSettings] = useState({
     // API Configuration
     alpacaApiKey: '••••••••••••••••',
     alpacaSecretKey: '••••••••••••••••',
@@ -37,22 +71,50 @@ const SettingsPanel: React.FC = () => {
   });
 
   const handleInputChange = (field: string, value: any) => {
-    setSettings(prev => ({
+    setEditedSettings(prev => ({
       ...prev,
       [field]: value
     }));
   };
 
-  const handleSave = () => {
-    // Simulate saving settings
-    console.log('Saving settings:', settings);
-    // In a real app, this would make an API call
+  const handleSave = async () => {
+    if (!currentUser || !settings) return;
+    
+    try {
+      await firebaseService.updateUserConfiguration(currentUser.uid, editedSettings);
+      const updatedConfig = await firebaseService.getUserConfiguration(currentUser.uid);
+      setSettings(updatedConfig);
+      console.log('Settings saved successfully');
+    } catch (error) {
+      console.error('Error saving settings:', error);
+    }
   };
 
   const tradingModes = [
     { value: 'paper', label: 'Paper Trading', description: 'Simulate trades without real money' },
     { value: 'live', label: 'Live Trading', description: 'Execute real trades with actual funds' }
   ];
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+          <span className={`ml-4 text-lg ${isDark ? 'text-white' : 'text-gray-900'}`}>Loading settings...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!settings) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <p className={`text-lg ${isDark ? 'text-white' : 'text-gray-900'}`}>Settings not found</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -82,7 +144,7 @@ const SettingsPanel: React.FC = () => {
             <Key className="h-5 w-5 mr-2 text-yellow-500" />
             API Configuration
           </h3>
-          <button
+            value={editedSettings.takeProfitPercentage || settings.takeProfitPercentage}
             onClick={() => setShowApiKeys(!showApiKeys)}
             className={`flex items-center space-x-2 transition-colors duration-300 ${
               isDark 
@@ -102,8 +164,8 @@ const SettingsPanel: React.FC = () => {
             </label>
             <input
               type={showApiKeys ? 'text' : 'password'}
-              value={settings.alpacaApiKey}
-              onChange={(e) => handleInputChange('alpacaApiKey', e.target.value)}
+              value={editedSettings.apiKeys?.alpacaApiKey || ''}
+              onChange={(e) => handleInputChange('apiKeys', {...editedSettings.apiKeys, alpacaApiKey: e.target.value})}
               className={`w-full border rounded-lg px-3 py-2 focus:border-blue-500 focus:outline-none transition-colors duration-300 ${
                 isDark 
                   ? 'bg-gray-700 border-gray-600 text-white' 
@@ -119,8 +181,8 @@ const SettingsPanel: React.FC = () => {
             </label>
             <input
               type={showApiKeys ? 'text' : 'password'}
-              value={settings.alpacaSecretKey}
-              onChange={(e) => handleInputChange('alpacaSecretKey', e.target.value)}
+              value={editedSettings.apiKeys?.alpacaSecretKey || ''}
+              onChange={(e) => handleInputChange('apiKeys', {...editedSettings.apiKeys, alpacaSecretKey: e.target.value})}
               className={`w-full border rounded-lg px-3 py-2 focus:border-blue-500 focus:outline-none transition-colors duration-300 ${
                 isDark 
                   ? 'bg-gray-700 border-gray-600 text-white' 
@@ -136,8 +198,8 @@ const SettingsPanel: React.FC = () => {
             </label>
             <input
               type={showApiKeys ? 'text' : 'password'}
-              value={settings.finnhubApiKey}
-              onChange={(e) => handleInputChange('finnhubApiKey', e.target.value)}
+              value={editedSettings.apiKeys?.finnhubApiKey || ''}
+              onChange={(e) => handleInputChange('apiKeys', {...editedSettings.apiKeys, finnhubApiKey: e.target.value})}
               className={`w-full border rounded-lg px-3 py-2 focus:border-blue-500 focus:outline-none transition-colors duration-300 ${
                 isDark 
                   ? 'bg-gray-700 border-gray-600 text-white' 
@@ -182,7 +244,7 @@ const SettingsPanel: React.FC = () => {
               Trading Mode
             </label>
             <select
-              value={settings.tradingMode}
+              value={editedSettings.tradingMode || settings.tradingMode}
               onChange={(e) => handleInputChange('tradingMode', e.target.value)}
               className={`w-full border rounded-lg px-3 py-2 focus:border-blue-500 focus:outline-none transition-colors duration-300 ${
                 isDark 
@@ -197,7 +259,7 @@ const SettingsPanel: React.FC = () => {
               ))}
             </select>
             <p className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-              {tradingModes.find(mode => mode.value === settings.tradingMode)?.description}
+              {tradingModes.find(mode => mode.value === (editedSettings.tradingMode || settings.tradingMode))?.description}
             </p>
           </div>
 
@@ -207,7 +269,7 @@ const SettingsPanel: React.FC = () => {
             </label>
             <input
               type="number"
-              value={settings.maxPositionSize}
+              value={editedSettings.maxPositionSize || settings.maxPositionSize}
               onChange={(e) => handleInputChange('maxPositionSize', parseInt(e.target.value))}
               className={`w-full border rounded-lg px-3 py-2 focus:border-blue-500 focus:outline-none transition-colors duration-300 ${
                 isDark 
@@ -223,7 +285,7 @@ const SettingsPanel: React.FC = () => {
             </label>
             <input
               type="number"
-              value={settings.maxDailyLoss}
+              value={editedSettings.maxDailyLoss || settings.maxDailyLoss}
               onChange={(e) => handleInputChange('maxDailyLoss', parseInt(e.target.value))}
               className={`w-full border rounded-lg px-3 py-2 focus:border-blue-500 focus:outline-none transition-colors duration-300 ${
                 isDark 
@@ -239,7 +301,7 @@ const SettingsPanel: React.FC = () => {
             </label>
             <input
               type="number"
-              value={settings.maxOpenPositions}
+              value={editedSettings.maxOpenPositions || settings.maxOpenPositions}
               onChange={(e) => handleInputChange('maxOpenPositions', parseInt(e.target.value))}
               className={`w-full border rounded-lg px-3 py-2 focus:border-blue-500 focus:outline-none transition-colors duration-300 ${
                 isDark 
@@ -265,14 +327,14 @@ const SettingsPanel: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-              Min Sentiment Threshold ({(settings.minSentimentThreshold * 100).toFixed(0)}%)
+              Min Sentiment Threshold ({((editedSettings.minSentimentThreshold || settings.minSentimentThreshold) * 100).toFixed(0)}%)
             </label>
             <input
               type="range"
               min="0"
               max="1"
               step="0.05"
-              value={settings.minSentimentThreshold}
+              value={editedSettings.minSentimentThreshold || settings.minSentimentThreshold}
               onChange={(e) => handleInputChange('minSentimentThreshold', parseFloat(e.target.value))}
               className={`w-full h-2 rounded-lg appearance-none cursor-pointer ${
                 isDark ? 'bg-gray-700' : 'bg-gray-200'
@@ -285,14 +347,14 @@ const SettingsPanel: React.FC = () => {
 
           <div>
             <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-              Max Sentiment Threshold ({(settings.maxSentimentThreshold * 100).toFixed(0)}%)
+              Max Sentiment Threshold ({((editedSettings.maxSentimentThreshold || settings.maxSentimentThreshold) * 100).toFixed(0)}%)
             </label>
             <input
               type="range"
               min="0"
               max="1"
               step="0.05"
-              value={settings.maxSentimentThreshold}
+              value={editedSettings.maxSentimentThreshold || settings.maxSentimentThreshold}
               onChange={(e) => handleInputChange('maxSentimentThreshold', parseFloat(e.target.value))}
               className={`w-full h-2 rounded-lg appearance-none cursor-pointer ${
                 isDark ? 'bg-gray-700' : 'bg-gray-200'
@@ -305,14 +367,14 @@ const SettingsPanel: React.FC = () => {
 
           <div>
             <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-              Sentiment Weight ({(settings.sentimentWeight * 100).toFixed(0)}%)
+              Sentiment Weight ({((editedSettings.sentimentWeight || settings.sentimentWeight) * 100).toFixed(0)}%)
             </label>
             <input
               type="range"
               min="0"
               max="1"
               step="0.1"
-              value={settings.sentimentWeight}
+              value={editedSettings.sentimentWeight || settings.sentimentWeight}
               onChange={(e) => {
                 const sentiment = parseFloat(e.target.value);
                 handleInputChange('sentimentWeight', sentiment);
@@ -329,14 +391,14 @@ const SettingsPanel: React.FC = () => {
 
           <div>
             <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-              Technical Weight ({(settings.technicalWeight * 100).toFixed(0)}%)
+              Technical Weight ({((editedSettings.technicalWeight || settings.technicalWeight) * 100).toFixed(0)}%)
             </label>
             <input
               type="range"
               min="0"
               max="1"
               step="0.1"
-              value={settings.technicalWeight}
+              value={editedSettings.technicalWeight || settings.technicalWeight}
               onChange={(e) => {
                 const technical = parseFloat(e.target.value);
                 handleInputChange('technicalWeight', technical);
@@ -372,7 +434,7 @@ const SettingsPanel: React.FC = () => {
             <input
               type="number"
               step="0.5"
-              value={settings.stopLossPercentage}
+              value={editedSettings.stopLossPercentage || settings.stopLossPercentage}
               onChange={(e) => handleInputChange('stopLossPercentage', parseFloat(e.target.value))}
               className={`w-full border rounded-lg px-3 py-2 focus:border-blue-500 focus:outline-none transition-colors duration-300 ${
                 isDark 
@@ -428,8 +490,8 @@ const SettingsPanel: React.FC = () => {
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={settings[setting.key as keyof typeof settings] as boolean}
-                  onChange={(e) => handleInputChange(setting.key, e.target.checked)}
+                  checked={(editedSettings.notifications as any)?.[setting.key] ?? (settings.notifications as any)?.[setting.key] ?? false}
+                  onChange={(e) => handleInputChange('notifications', {...editedSettings.notifications, [setting.key]: e.target.checked})}
                   className="sr-only peer"
                 />
                 <div className={`w-11 h-6 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 ${

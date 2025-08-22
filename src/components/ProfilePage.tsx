@@ -2,20 +2,7 @@ import React, { useState } from 'react';
 import { User, Mail, Phone, MapPin, Calendar, Award, TrendingUp, Activity, Edit3, Save, X, Camera, Shield, Star, Zap } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
-
-interface UserProfile {
-  name: string;
-  email: string;
-  phone: string;
-  location: string;
-  joinDate: string;
-  bio: string;
-  avatar: string;
-  accountType: 'free' | 'premium' | 'enterprise';
-  tradingExperience: string;
-  riskTolerance: 'low' | 'medium' | 'high';
-  preferredAssets: string[];
-}
+import { firebaseService, UserProfile as FirebaseUserProfile } from '../services/firebase';
 
 interface TradingStats {
   totalTrades: number;
@@ -30,7 +17,50 @@ const ProfilePage: React.FC = () => {
   const { isDark } = useTheme();
   const { currentUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
-  const [profile, setProfile] = useState<UserProfile>({
+  const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<FirebaseUserProfile | null>(null);
+  const [editedProfile, setEditedProfile] = useState<Partial<FirebaseUserProfile>>({});
+
+  // Load user profile from Firebase
+  React.useEffect(() => {
+    if (!currentUser) return;
+
+    const loadProfile = async () => {
+      try {
+        setLoading(true);
+        let userProfile = await firebaseService.getUserProfile(currentUser.uid);
+        
+        if (!userProfile) {
+          // Create default profile if it doesn't exist
+          const defaultProfile: Partial<FirebaseUserProfile> = {
+            name: currentUser.displayName || 'User',
+            email: currentUser.email || '',
+            phone: '',
+            location: '',
+            bio: '',
+            accountType: 'free',
+            tradingExperience: '< 1 year',
+            riskTolerance: 'medium',
+            preferredAssets: ['AAPL', 'TSLA', 'MSFT', 'NVDA']
+          };
+          
+          await firebaseService.createUserProfile(currentUser.uid, defaultProfile);
+          userProfile = await firebaseService.getUserProfile(currentUser.uid);
+        }
+        
+        setProfile(userProfile);
+        setEditedProfile(userProfile || {});
+      } catch (error) {
+        console.error('Error loading profile:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProfile();
+  }, [currentUser]);
+
+  const [defaultProfile] = useState({
     name: currentUser?.displayName || 'John Doe',
     email: currentUser?.email || 'john.doe@example.com',
     phone: '+1 (555) 123-4567',
@@ -53,16 +83,21 @@ const ProfilePage: React.FC = () => {
     sharpeRatio: 1.85
   });
 
-  const [editedProfile, setEditedProfile] = useState<UserProfile>(profile);
-
-  const handleSave = () => {
-    setProfile(editedProfile);
-    setIsEditing(false);
-    // In a real app, this would make an API call to update the profile
+  const handleSave = async () => {
+    if (!currentUser || !profile) return;
+    
+    try {
+      await firebaseService.updateUserProfile(currentUser.uid, editedProfile);
+      const updatedProfile = await firebaseService.getUserProfile(currentUser.uid);
+      setProfile(updatedProfile);
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error updating profile:', error);
+    }
   };
 
   const handleCancel = () => {
-    setEditedProfile(profile);
+    setEditedProfile(profile || {});
     setIsEditing(false);
   };
 
@@ -81,6 +116,27 @@ const ProfilePage: React.FC = () => {
       default: return <Shield className="h-4 w-4" />;
     }
   };
+
+  if (loading) {
+    return (
+      <div className="space-y-8">
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+          <span className={`ml-4 text-lg ${isDark ? 'text-white' : 'text-gray-900'}`}>Loading profile...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="space-y-8">
+        <div className="text-center">
+          <p className={`text-lg ${isDark ? 'text-white' : 'text-gray-900'}`}>Profile not found</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -158,7 +214,7 @@ const ProfilePage: React.FC = () => {
                     {isEditing ? (
                       <input
                         type="text"
-                        value={editedProfile.name}
+                        value={editedProfile.name || ''}
                         onChange={(e) => setEditedProfile({...editedProfile, name: e.target.value})}
                         className={`text-2xl font-bold bg-transparent border-b-2 border-blue-500 focus:outline-none ${
                           isDark ? 'text-white' : 'text-gray-900'
@@ -169,9 +225,9 @@ const ProfilePage: React.FC = () => {
                         {profile.name}
                       </h2>
                     )}
-                    <div className={`flex items-center space-x-2 mt-1 px-3 py-1 rounded-full bg-gradient-to-r ${getAccountTypeColor(profile.accountType)} text-white text-sm font-medium`}>
-                      {getAccountTypeIcon(profile.accountType)}
-                      <span className="capitalize">{profile.accountType} Account</span>
+                    <div className={`flex items-center space-x-2 mt-1 px-3 py-1 rounded-full bg-gradient-to-r ${getAccountTypeColor(profile.accountType || 'free')} text-white text-sm font-medium`}>
+                      {getAccountTypeIcon(profile.accountType || 'free')}
+                      <span className="capitalize">{profile.accountType || 'free'} Account</span>
                     </div>
                   </div>
                 </div>
@@ -182,14 +238,14 @@ const ProfilePage: React.FC = () => {
                     {isEditing ? (
                       <input
                         type="email"
-                        value={editedProfile.email}
+                        value={editedProfile.email || ''}
                         onChange={(e) => setEditedProfile({...editedProfile, email: e.target.value})}
                         className={`flex-1 bg-transparent border-b border-gray-300 focus:border-blue-500 focus:outline-none ${
                           isDark ? 'text-gray-300' : 'text-gray-600'
                         }`}
                       />
                     ) : (
-                      <span className={isDark ? 'text-gray-300' : 'text-gray-600'}>{profile.email}</span>
+                      <span className={isDark ? 'text-gray-300' : 'text-gray-600'}>{profile.email || ''}</span>
                     )}
                   </div>
 
@@ -198,14 +254,14 @@ const ProfilePage: React.FC = () => {
                     {isEditing ? (
                       <input
                         type="tel"
-                        value={editedProfile.phone}
+                        value={editedProfile.phone || ''}
                         onChange={(e) => setEditedProfile({...editedProfile, phone: e.target.value})}
                         className={`flex-1 bg-transparent border-b border-gray-300 focus:border-blue-500 focus:outline-none ${
                           isDark ? 'text-gray-300' : 'text-gray-600'
                         }`}
                       />
                     ) : (
-                      <span className={isDark ? 'text-gray-300' : 'text-gray-600'}>{profile.phone}</span>
+                      <span className={isDark ? 'text-gray-300' : 'text-gray-600'}>{profile.phone || ''}</span>
                     )}
                   </div>
 
@@ -214,21 +270,21 @@ const ProfilePage: React.FC = () => {
                     {isEditing ? (
                       <input
                         type="text"
-                        value={editedProfile.location}
+                        value={editedProfile.location || ''}
                         onChange={(e) => setEditedProfile({...editedProfile, location: e.target.value})}
                         className={`flex-1 bg-transparent border-b border-gray-300 focus:border-blue-500 focus:outline-none ${
                           isDark ? 'text-gray-300' : 'text-gray-600'
                         }`}
                       />
                     ) : (
-                      <span className={isDark ? 'text-gray-300' : 'text-gray-600'}>{profile.location}</span>
+                      <span className={isDark ? 'text-gray-300' : 'text-gray-600'}>{profile.location || ''}</span>
                     )}
                   </div>
 
                   <div className="flex items-center space-x-3">
                     <Calendar className={`h-5 w-5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
                     <span className={isDark ? 'text-gray-300' : 'text-gray-600'}>
-                      Joined {new Date(profile.joinDate).toLocaleDateString()}
+                      Joined {profile.createdAt?.toDate().toLocaleDateString() || 'Recently'}
                     </span>
                   </div>
                 </div>
@@ -242,7 +298,7 @@ const ProfilePage: React.FC = () => {
               </h3>
               {isEditing ? (
                 <textarea
-                  value={editedProfile.bio}
+                  value={editedProfile.bio || ''}
                   onChange={(e) => setEditedProfile({...editedProfile, bio: e.target.value})}
                   rows={3}
                   className={`w-full p-3 rounded-lg border focus:border-blue-500 focus:outline-none resize-none ${
@@ -252,7 +308,7 @@ const ProfilePage: React.FC = () => {
                   }`}
                 />
               ) : (
-                <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>{profile.bio}</p>
+                <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>{profile.bio || 'No bio available'}</p>
               )}
             </div>
           </div>
@@ -274,7 +330,7 @@ const ProfilePage: React.FC = () => {
                 </label>
                 {isEditing ? (
                   <select
-                    value={editedProfile.tradingExperience}
+                    value={editedProfile.tradingExperience || ''}
                     onChange={(e) => setEditedProfile({...editedProfile, tradingExperience: e.target.value})}
                     className={`w-full p-3 rounded-lg border focus:border-blue-500 focus:outline-none ${
                       isDark 
@@ -289,7 +345,7 @@ const ProfilePage: React.FC = () => {
                   </select>
                 ) : (
                   <div className={`p-3 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
-                    <span className={isDark ? 'text-white' : 'text-gray-900'}>{profile.tradingExperience}</span>
+                    <span className={isDark ? 'text-white' : 'text-gray-900'}>{profile.tradingExperience || '< 1 year'}</span>
                   </div>
                 )}
               </div>
@@ -300,7 +356,7 @@ const ProfilePage: React.FC = () => {
                 </label>
                 {isEditing ? (
                   <select
-                    value={editedProfile.riskTolerance}
+                    value={editedProfile.riskTolerance || ''}
                     onChange={(e) => setEditedProfile({...editedProfile, riskTolerance: e.target.value as 'low' | 'medium' | 'high'})}
                     className={`w-full p-3 rounded-lg border focus:border-blue-500 focus:outline-none ${
                       isDark 
@@ -314,7 +370,7 @@ const ProfilePage: React.FC = () => {
                   </select>
                 ) : (
                   <div className={`p-3 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
-                    <span className={`capitalize ${isDark ? 'text-white' : 'text-gray-900'}`}>{profile.riskTolerance}</span>
+                    <span className={`capitalize ${isDark ? 'text-white' : 'text-gray-900'}`}>{profile.riskTolerance || 'medium'}</span>
                   </div>
                 )}
               </div>
@@ -325,7 +381,7 @@ const ProfilePage: React.FC = () => {
                 Preferred Assets
               </label>
               <div className="flex flex-wrap gap-2">
-                {profile.preferredAssets.map((asset) => (
+                {(profile.preferredAssets || []).map((asset) => (
                   <span
                     key={asset}
                     className="px-3 py-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full text-sm font-medium"

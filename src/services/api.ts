@@ -1,4 +1,6 @@
 // API service for communicating with Python FastAPI microservices
+import { firebaseService, UserProfile, Trade, TradingSignal, SentimentScore, NewsItem } from './firebase';
+import { useAuth } from '../contexts/AuthContext';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 const SENTIMENT_SERVICE_URL = import.meta.env.VITE_SENTIMENT_SERVICE_URL || 'http://localhost:8001';
@@ -75,19 +77,19 @@ export interface Trade {
   pnl: number;
   status: 'completed' | 'pending' | 'cancelled';
 }
+
 class ApiService {
-  private getAuthToken(): string | null {
-    return localStorage.getItem('authToken');
+  private getCurrentUserId(): string | null {
+    // This should be called from a component that has access to auth context
+    return null; // Will be overridden by components
   }
 
   private async makeRequest<T>(baseUrl: string, endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${baseUrl}${endpoint}`;
-    const token = this.getAuthToken();
     
     const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` }),
         ...options.headers,
       },
       ...options,
@@ -100,46 +102,27 @@ class ApiService {
     return response.json();
   }
 
-  // Backend API calls
-  async login(email: string, password: string): Promise<{ token: string; user: any }> {
-    return this.makeRequest(API_BASE_URL, '/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    });
+  // Firebase-based methods
+  async getUserProfile(userId: string): Promise<UserProfile | null> {
+    return firebaseService.getUserProfile(userId);
   }
 
-  async register(email: string, password: string, name: string): Promise<{ token: string; user: any }> {
-    return this.makeRequest(API_BASE_URL, '/auth/register', {
-      method: 'POST',
-      body: JSON.stringify({ email, password, name }),
-    });
+  async updateUserProfile(userId: string, profile: Partial<UserProfile>): Promise<void> {
+    return firebaseService.updateUserProfile(userId, profile);
   }
 
-  async getUserProfile(): Promise<UserProfile> {
-    return this.makeRequest(API_BASE_URL, '/user/profile');
+  async getTradingHistory(userId: string): Promise<Trade[]> {
+    return firebaseService.getTrades(userId);
   }
 
-  async updateUserProfile(profile: Partial<UserProfile>): Promise<{ message: string }> {
-    return this.makeRequest(API_BASE_URL, '/user/profile', {
-      method: 'PUT',
-      body: JSON.stringify(profile),
-    });
+  async getUserConfig(userId: string): Promise<any> {
+    return firebaseService.getUserConfiguration(userId);
   }
 
-  async getTradingHistory(): Promise<Trade[]> {
-    return this.makeRequest(API_BASE_URL, '/trading/history');
+  async updateUserConfig(userId: string, config: any): Promise<void> {
+    return firebaseService.updateUserConfiguration(userId, config);
   }
 
-  async getUserConfig(): Promise<any> {
-    return this.makeRequest(API_BASE_URL, '/user/config');
-  }
-
-  async updateUserConfig(config: any): Promise<{ message: string }> {
-    return this.makeRequest(API_BASE_URL, '/user/config', {
-      method: 'POST',
-      body: JSON.stringify(config),
-    });
-  }
   // Sentiment Analysis Service
   async analyzeSentiment(request: SentimentRequest): Promise<SentimentResponse> {
     return this.makeRequest<SentimentResponse>(SENTIMENT_SERVICE_URL, '/sentiment/analyze', {
@@ -177,15 +160,13 @@ class ApiService {
     });
   }
 
-  // News and Data Service
-  async getLatestNews(symbols?: string[]): Promise<any[]> {
-    const params = symbols ? `?symbols=${symbols.join(',')}` : '';
-    return this.makeRequest(API_BASE_URL, `/news/latest${params}`);
+  // Firebase-based news service
+  async getLatestNews(symbols?: string[]): Promise<NewsItem[]> {
+    return firebaseService.getNews(symbols);
   }
 
-  async getNewsWithSentiment(symbols?: string[]): Promise<any[]> {
-    const params = symbols ? `?symbols=${symbols.join(',')}` : '';
-    return this.makeRequest(API_BASE_URL, `/news/sentiment${params}`);
+  async getNewsWithSentiment(symbols?: string[]): Promise<NewsItem[]> {
+    return firebaseService.getNews(symbols);
   }
 
   // Health check
@@ -203,9 +184,39 @@ class ApiService {
       method: 'POST',
     });
   }
+
+  // Firebase real-time subscriptions
+  subscribeToTrades(userId: string, callback: (trades: Trade[]) => void): () => void {
+    return firebaseService.subscribeToTrades(userId, callback);
+  }
+
+  subscribeToTradingSignals(userId: string, callback: (signals: TradingSignal[]) => void): () => void {
+    return firebaseService.subscribeToTradingSignals(userId, callback);
+  }
+
+  // Store sentiment analysis results
+  async storeSentimentScore(userId: string, sentimentData: Omit<SentimentScore, 'id' | 'createdAt' | 'updatedAt' | 'userId'>): Promise<string> {
+    return firebaseService.createSentimentScore({
+      ...sentimentData,
+      userId
+    });
+  }
+
+  // Store trading signals
+  async storeTradingSignal(userId: string, signalData: Omit<TradingSignal, 'id' | 'createdAt' | 'updatedAt' | 'userId'>): Promise<string> {
+    return firebaseService.createTradingSignal({
+      ...signalData,
+      userId
+    });
+  }
+
+  // Store trades
+  async storeTrade(userId: string, tradeData: Omit<Trade, 'id' | 'createdAt' | 'updatedAt' | 'userId'>): Promise<string> {
+    return firebaseService.createTrade({
+      ...tradeData,
+      userId
+    });
+  }
 }
 
 export const apiService = new ApiService();
-
-// Fallback to mock data if API is unavailable
-export const useMockData = false; // Set to true for development without backend

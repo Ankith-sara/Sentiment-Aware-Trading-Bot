@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Brain, TrendingUp, TrendingDown, Clock, ExternalLink, Filter } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
-import { apiService } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
+import { firebaseService, NewsItem as FirebaseNewsItem } from '../services/firebase';
 
 interface NewsItem {
   id: string;
@@ -17,6 +18,7 @@ interface NewsItem {
 
 const NewsPanel: React.FC = () => {
   const { isDark } = useTheme();
+  const { currentUser } = useAuth();
   const [filter, setFilter] = useState('all');
   const [selectedSymbol, setSelectedSymbol] = useState('all');
   const [news, setNews] = useState<NewsItem[]>([]);
@@ -25,23 +27,25 @@ const NewsPanel: React.FC = () => {
   
   // Fetch news with sentiment on component mount
   React.useEffect(() => {
+    if (!currentUser) return;
+
     const fetchNewsWithSentiment = async () => {
       try {
         setLoading(true);
         setError(null);
         
-        const newsResponse = await apiService.getNewsWithSentiment(['AAPL', 'TSLA', 'MSFT', 'NVDA']);
+        const newsResponse = await firebaseService.getNews(['AAPL', 'TSLA', 'MSFT', 'NVDA']);
         
-        const formattedNews = newsResponse.map((item, index) => ({
-          id: item.id || index.toString(),
+        const formattedNews = newsResponse.map((item: FirebaseNewsItem) => ({
+          id: item.id || '',
           headline: item.headline,
           summary: item.summary,
           source: item.source,
-          timestamp: new Date(item.timestamp),
-          sentiment: item.sentiment_score,
+          timestamp: item.createdAt?.toDate() || new Date(),
+          sentiment: item.sentimentScore || 0.5,
           relevantSymbols: item.symbols || [],
           url: item.url || '#',
-          impact: item.impact || 'medium' as 'high' | 'medium' | 'low'
+          impact: item.impact || 'medium'
         }));
         
         setNews(formattedNews);
@@ -124,7 +128,7 @@ const NewsPanel: React.FC = () => {
     };
 
     fetchNewsWithSentiment();
-  }, []);
+  }, [currentUser]);
 
   const filteredNews = news.filter(item => {
     if (filter === 'positive' && item.sentiment < 0.6) return false;

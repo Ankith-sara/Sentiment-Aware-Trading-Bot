@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { TrendingUp, TrendingDown, Filter, Download, Calendar } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
-import { apiService } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
+import { firebaseService, Trade as FirebaseTrade } from '../services/firebase';
 
 interface Trade {
   id: string;
@@ -18,6 +19,7 @@ interface Trade {
 
 const TradingHistory: React.FC = () => {
   const { isDark } = useTheme();
+  const { currentUser } = useAuth();
   const [filter, setFilter] = useState('all');
   const [dateRange, setDateRange] = useState('7d');
   const [trades, setTrades] = useState<Trade[]>([]);
@@ -26,15 +28,25 @@ const TradingHistory: React.FC = () => {
 
   // Fetch trading history on component mount
   React.useEffect(() => {
+    if (!currentUser) return;
+
     const fetchTradingHistory = async () => {
       try {
         setLoading(true);
         setError(null);
         
-        const tradesResponse = await apiService.getTradingHistory();
-        const formattedTrades = tradesResponse.map(trade => ({
-          ...trade,
-          timestamp: new Date(trade.timestamp)
+        const tradesResponse = await firebaseService.getTrades(currentUser.uid);
+        const formattedTrades = tradesResponse.map((trade: FirebaseTrade) => ({
+          id: trade.id || '',
+          symbol: trade.symbol,
+          type: trade.action as 'buy' | 'sell',
+          quantity: trade.quantity,
+          price: trade.price,
+          total: trade.totalValue,
+          timestamp: trade.createdAt?.toDate() || new Date(),
+          sentiment: trade.sentimentScore || 0.5,
+          pnl: trade.pnl,
+          status: trade.status as 'completed' | 'pending' | 'cancelled'
         }));
         
         setTrades(formattedTrades);
@@ -111,7 +123,31 @@ const TradingHistory: React.FC = () => {
     };
 
     fetchTradingHistory();
-  }, []);
+  }, [currentUser]);
+
+  // Real-time updates
+  React.useEffect(() => {
+    if (!currentUser) return;
+
+    const unsubscribe = firebaseService.subscribeToTrades(currentUser.uid, (firebaseTrades) => {
+      const formattedTrades = firebaseTrades.map((trade: FirebaseTrade) => ({
+        id: trade.id || '',
+        symbol: trade.symbol,
+        type: trade.action as 'buy' | 'sell',
+        quantity: trade.quantity,
+        price: trade.price,
+        total: trade.totalValue,
+        timestamp: trade.createdAt?.toDate() || new Date(),
+        sentiment: trade.sentimentScore || 0.5,
+        pnl: trade.pnl,
+        status: trade.status as 'completed' | 'pending' | 'cancelled'
+      }));
+      setTrades(formattedTrades);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [currentUser]);
 
   const filteredTrades = trades.filter(trade => {
     if (filter === 'all') return true;
