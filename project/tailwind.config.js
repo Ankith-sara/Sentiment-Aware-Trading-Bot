@@ -4,7 +4,6 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
-<<<<<<< HEAD
       screens: {
         'xs': '475px',
       },
@@ -68,14 +67,3 @@ export default {
     }
   ],
 };
-=======
-      colors: {
-        gray: {
-          950: '#0a0a0a',
-        }
-      }
-    },
-  },
-  plugins: [],
-};
->>>>>>> e055dc2ea80f786ab36bf8b1a974db61f91ca2a2
