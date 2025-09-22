@@ -16,7 +16,6 @@ export const useTheme = () => {
 };
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-<<<<<<< HEAD
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
@@ -32,25 +31,6 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, [isDark]);
 
   const toggleTheme = () => setIsDark(!isDark);
-=======
-  const [isDark, setIsDark] = useState(() => {
-    const saved = localStorage.getItem('theme');
-    return saved ? saved === 'dark' : true; // Default to dark theme
-  });
-
-  useEffect(() => {
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
-    if (isDark) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [isDark]);
-
-  const toggleTheme = () => {
-    setIsDark(!isDark);
-  };
->>>>>>> e055dc2ea80f786ab36bf8b1a974db61f91ca2a2
 
   return (
     <ThemeContext.Provider value={{ isDark, toggleTheme }}>
