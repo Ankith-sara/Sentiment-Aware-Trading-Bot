@@ -1,0 +1,91 @@
+# FastAPI and Web Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+jinja2==3.1.2
+
+# Database
+sqlalchemy==2.0.23
+psycopg2-binary==2.9.9
+alembic==1.12.1
+redis==5.0.1
+
+# MongoDB (Alternative)
+motor==3.3.2
+pymongo==4.6.0
+
+# Data Processing
+pandas==2.1.3
+numpy==1.25.2
+scipy==1.11.4
+
+# Technical Analysis
+TA-Lib==0.4.28
+yfinance==0.2.28
+git+https://github.com/twopirllc/pandas-ta.git
+
+# AI/ML Libraries
+transformers==4.36.2
+torch==2.1.1
+tokenizers==0.15.0
+huggingface-hub==0.19.4
+openai==1.3.7
+
+# HTTP Requests
+aiohttp==3.9.1
+httpx==0.25.2
+requests==2.31.0
+
+# Trading APIs
+alpaca-trade-api==3.1.1
+
+# News and Data
+feedparser==6.0.10
+beautifulsoup4==4.12.2
+newspaper3k==0.2.8
+
+# Authentication & Security
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.6
+bcrypt==4.1.2
+
+# Configuration
+python-decouple==3.8
+pydantic==2.5.1
+pydantic-settings==2.1.0
+
+# Utilities
+python-dateutil==2.8.2
+pytz==2023.3
+schedule==1.2.0
+
+# Development
+pytest==7.4.3
+pytest-asyncio==0.21.1
+black==23.11.0
+isort==5.12.0
+flake8==6.1.0
+
+# Monitoring and Logging
+loguru==0.7.2
+sentry-sdk==1.38.0
+
+# Background Tasks
+celery==5.3.4
+redis==5.0.1
+
+# Email
+emails==0.6.0
+
+# WebSockets (for real-time updates)
+websockets==12.0
+
+# Rate Limiting
+slowapi==0.1.9
+
+# CORS and Security
+python-cors==1.0.1
+
+# Environment
+python-dotenv==1.0.0

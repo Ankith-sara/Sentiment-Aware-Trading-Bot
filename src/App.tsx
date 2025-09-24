@@ -61,18 +61,18 @@ function App() {
           <div className="w-full">
             <MobileHeader onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
           </div>
-          
+
           {/* Sidebar */}
-          <Sidebar 
-            activeTab={activeTab} 
+          <Sidebar
+            activeTab={activeTab}
             onTabChange={setActiveTab}
             isOpen={sidebarOpen}
             onToggle={() => setSidebarOpen(!sidebarOpen)}
           />
-          
+
           {/* Main Content */}
-          <main className="lg:ml-72 min-h-screen pt-16 lg:pt-0 w-full overflow-x-hidden">
-            <div className="w-full px-4 py-4 lg:py-6 max-w-full">
+          <main className="lg:ml-72 min-h-screen pt-16 lg:pt-0 overflow-x-hidden flex-1">
+            <div className="w-full px-4 py-4 lg:py-6 max-w-screen-2xl mx-auto">
               {renderContent()}
             </div>
           </main>

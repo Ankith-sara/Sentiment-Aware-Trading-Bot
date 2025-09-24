@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowUp, ArrowDown, Minus, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { ArrowUp, ArrowDown, Minus, Clock, CheckCircle } from 'lucide-react';
 import { useTrading } from '../contexts/TradingContext';
 
 export const RecentSignals: React.FC = () => {

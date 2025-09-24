@@ -5,11 +5,9 @@ import {
   TrendingUp, 
   Briefcase, 
   History, 
-  Settings, 
-  Menu,
+  Settings,
   X,
   Bot,
-  DollarSign,
   Activity,
   IndianRupee
 } from 'lucide-react';
